@@ -104,6 +104,12 @@ button, .btn {
 button:hover, .btn:hover { background: var(--ink-2); }
 button.ghost, .btn.ghost { background: transparent; color: var(--ink); }
 button.ghost:hover, .btn.ghost:hover { background: #eceff4; }
+button.ghost[aria-pressed='true'] { background: var(--ink); color: #fff; }
+label.ghost {
+  font-size: 0.95rem; font-weight: 650; border: 1.5px solid var(--ink); border-radius: var(--radius-s);
+  padding: 0.45em 1em; color: var(--ink); background: transparent; cursor: pointer;
+}
+label.ghost:hover { background: #eceff4; }
 button:disabled { opacity: 0.45; cursor: not-allowed; }
 
 input[type='range'] { accent-color: var(--ink); width: 100%; }
@@ -148,3 +154,7 @@ input[type='range'] { accent-color: var(--ink); width: 100%; }
 .wrap { max-width: var(--wide); margin-top: 3rem; border-top: 2px solid var(--ink); padding-top: 0.9rem; }
 .wrap h2 { margin: 0 0 0.6rem; font-size: 1.4rem; }
 h3 small { font-weight: 500; color: var(--muted); font-size: 0.8em; }
+
+/* 좁은 화면에서 표 안의 코드가 화면 밖으로 밀리지 않게 */
+.prose table code { white-space: normal; overflow-wrap: anywhere; }
+@media (max-width: 640px) { .prose table { font-size: 0.88rem; } }

@@ -65,7 +65,7 @@ export const UNITS: Unit[] = [
       '합성곱 신경망의 개념을 설명하고 모델을 구현할 수 있다.',
     ],
     standard: '12인기02-06',
-    ready: false,
+    ready: true,
     sections: [
       { title: '컴퓨터 비전의 이해와 활용 사례', pages: '143~144쪽' },
       { title: '컴퓨터 비전 객체 탐지 기술 체험하기', pages: '145쪽', kind: '활동 9' },
@@ -85,7 +85,7 @@ export const UNITS: Unit[] = [
     guide: '지도서 29~32차시',
     goals: ['음성 인식과 자연어 처리 과정을 이해할 수 있다.'],
     standard: '12인기02-06',
-    ready: false,
+    ready: true,
     sections: [
       { title: '음성 인식과 자연어 처리 이해', pages: '155쪽' },
       { title: '딥러닝을 활용한 음성 인식', pages: '156쪽' },

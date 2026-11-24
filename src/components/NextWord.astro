@@ -1,0 +1,202 @@
+---
+// 아주 작은 언어 모델: 문장 몇십 개에서 단어가 이어지는 횟수를 세어
+// GPT 방식(다음 단어 예측)과 BERT 방식(빈칸 채우기)을 흉내 낸다.
+const CORPUS = [
+  '나는 아침에 우유를 마신다',
+  '나는 아침에 빵을 먹는다',
+  '나는 점심에 급식을 먹는다',
+  '나는 점심에 친구와 축구를 한다',
+  '나는 저녁에 숙제를 한다',
+  '나는 저녁에 음악을 듣는다',
+  '나는 주말에 영화를 본다',
+  '나는 주말에 도서관에서 책을 읽는다',
+  '나는 급식을 정말 좋아한다',
+  '나는 수학을 정말 좋아한다',
+  '나는 체육 시간을 정말 좋아한다',
+  '나는 숙제를 정말 싫어한다',
+  '친구는 점심에 축구를 한다',
+  '친구는 운동장에서 축구를 한다',
+  '친구는 교실에서 책을 읽는다',
+  '친구는 아침에 우유를 마신다',
+  '친구는 주말에 게임을 한다',
+  '친구는 음악을 정말 좋아한다',
+  '동생은 아침에 빵을 먹는다',
+  '동생은 집에서 게임을 한다',
+  '동생은 저녁에 만화를 본다',
+  '동생은 고양이를 정말 좋아한다',
+  '선생님은 교실에서 수업을 한다',
+  '선생님은 아침에 커피를 마신다',
+  '선생님은 점심에 급식을 먹는다',
+  '선생님은 학생들을 정말 좋아한다',
+  '우리는 운동장에서 축구를 한다',
+  '우리는 교실에서 수업을 듣는다',
+  '우리는 점심에 급식을 먹는다',
+  '우리는 주말에 영화를 본다',
+  '우리는 도서관에서 책을 읽는다',
+  '우리는 체육 시간을 정말 좋아한다',
+  '오늘 날씨가 정말 좋다',
+  '오늘 날씨가 조금 춥다',
+  '오늘 급식이 정말 맛있다',
+  '오늘 수업이 정말 재미있다',
+  '내일 날씨가 조금 덥다',
+  '내일 우리는 소풍을 간다',
+  '고양이는 집에서 잠을 잔다',
+  '고양이는 아침에 우유를 마신다',
+];
+---
+<div class="widget nw" data-nextword data-corpus={JSON.stringify(CORPUS)}>
+  <p class="widget-title">언어 모델 흉내 내기</p>
+  <p class="widget-help">이 작은 언어 모델은 아래 [학습한 문장]에서 어떤 단어 다음에 어떤 단어가 왔는지 횟수를 세어 확률을 구했습니다. 실제 언어 모델은 같은 일을 수천억 개의 단어로, 신경망으로 합니다.</p>
+
+  <div class="nw-tabs" role="group" aria-label="학습 방식 고르기">
+    <button type="button" class="ghost" data-mode="gpt" aria-pressed="true">다음 단어 예측 (GPT 방식)</button>
+    <button type="button" class="ghost" data-mode="bert" aria-pressed="false">빈칸 채우기 (BERT 방식)</button>
+  </div>
+
+  <div data-pane="gpt">
+    <p class="nw-hint">첫 단어를 고르고, 다음 단어 후보 중 하나를 눌러 문장을 이어 가세요.</p>
+    <div class="nw-starts" data-starts></div>
+    <p class="nw-sent" data-sent aria-live="polite"></p>
+    <div class="nw-bars" data-bars></div>
+    <div class="nw-actions">
+      <button type="button" class="btn" data-auto>확률대로 끝까지 쓰기</button>
+      <button type="button" class="ghost" data-back>한 단어 지우기</button>
+    </div>
+  </div>
+
+  <div data-pane="bert" hidden>
+    <p class="nw-hint">빈칸에 들어갈 단어를 맞혀 보세요. BERT처럼 빈칸의 <b>앞과 뒤</b>를 모두 보면 앞만 볼 때보다 답을 더 잘 좁힐 수 있습니다.</p>
+    <p class="nw-sent" data-bsent></p>
+    <div class="nw-two">
+      <div><p class="nw-sub">앞 단어만 볼 때</p><div class="nw-bars" data-bleft></div></div>
+      <div><p class="nw-sub">앞과 뒤를 모두 볼 때</p><div class="nw-bars" data-bboth></div></div>
+    </div>
+    <div class="nw-actions"><button type="button" class="btn" data-newq>다른 문제</button></div>
+  </div>
+
+  <details class="nw-corpus">
+    <summary>학습한 문장 {CORPUS.length}개 보기</summary>
+    <ol>{CORPUS.map((s) => <li>{s}</li>)}</ol>
+  </details>
+</div>
+
+<style>
+  .nw-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+  .nw-hint { font-size: 0.92rem; margin: 0 0 0.6rem; }
+  .nw-starts { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
+  .nw-starts :global(button) { padding: 0.3em 0.75em; }
+  .nw-sent { font-size: 1.25rem; font-weight: 750; min-height: 1.6em; margin: 0.3rem 0 0.7rem; }
+  .nw-sent :global(.blank) { display: inline-block; min-width: 4.5em; border-bottom: 3px solid var(--fire); text-align: center; color: var(--fire); }
+  .nw-sent :global(.cursor) { color: var(--muted); font-weight: 400; }
+  .nw-bars { display: grid; gap: 0.3rem; margin-bottom: 0.8rem; }
+  .nw-bars :global(button) {
+    display: grid; grid-template-columns: 7.5rem 1fr 3.2rem; gap: 0.5rem; align-items: center; text-align: left;
+    background: #fff; color: var(--ink); border: 1.5px solid var(--line); padding: 0.35rem 0.6rem; font-weight: 650;
+  }
+  .nw-bars :global(button:hover) { background: var(--pos-soft); border-color: var(--pos); }
+  .nw-bars :global(.bar) { height: 0.7rem; border-radius: 4px; background: var(--pos); }
+  .nw-bars :global(.pct) { text-align: right; font-variant-numeric: tabular-nums; font-size: 0.88rem; color: var(--ink-2); }
+  .nw-bars :global(.ok) { border-color: var(--fire); background: var(--fire-soft); }
+  .nw-bars :global(.empty) { font-size: 0.9rem; color: var(--muted); margin: 0; }
+  .nw-sub { font-size: 0.85rem; font-weight: 700; margin: 0 0 0.35rem; color: var(--ink-2); }
+  .nw-two { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .nw-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .nw-corpus { margin-top: 1rem; font-size: 0.9rem; }
+  .nw-corpus summary { cursor: pointer; font-weight: 650; }
+  .nw-corpus ol { columns: 2; margin-top: 0.5rem; color: var(--ink-2); }
+  @media (max-width: 640px) { .nw-two { grid-template-columns: 1fr; } .nw-corpus ol { columns: 1; } }
+</style>
+
+<script>
+  const END = '.';
+  document.querySelectorAll<HTMLElement>('[data-nextword]').forEach((root) => {
+    const sents: string[][] = JSON.parse(root.dataset.corpus!).map((s: string) => s.split(' '));
+    // 이어지는 횟수 세기
+    const next = new Map<string, Map<string, number>>();
+    const add = (a: string, b: string) => {
+      if (!next.has(a)) next.set(a, new Map());
+      const m = next.get(a)!; m.set(b, (m.get(b) || 0) + 1);
+    };
+    sents.forEach((w) => { w.forEach((x, i) => add(x, i + 1 < w.length ? w[i + 1] : END)); });
+    const starts = [...new Set(sents.map((w) => w[0]))];
+
+    const probs = (m: Map<string, number> | undefined) => {
+      if (!m) return [] as [string, number][];
+      const tot = [...m.values()].reduce((a, b) => a + b, 0);
+      return [...m.entries()].map(([k, v]) => [k, v / tot] as [string, number]).sort((a, b) => b[1] - a[1]);
+    };
+    const bars = (el: HTMLElement, list: [string, number][], onPick?: (w: string) => void, mark?: string) => {
+      el.innerHTML = '';
+      if (!list.length) { el.innerHTML = '<p class="empty">후보가 없습니다.</p>'; return; }
+      list.slice(0, 6).forEach(([w, p]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        if (mark && w === mark) b.classList.add('ok');
+        b.innerHTML = `<span>${w === END ? '(문장 끝)' : w}</span><span class="bar" style="width:${Math.max(3, p * 100)}%"></span><span class="pct">${Math.round(p * 100)}%</span>`;
+        if (onPick) b.addEventListener('click', () => onPick(w)); else b.disabled = true;
+        el.appendChild(b);
+      });
+    };
+
+    // ---- GPT 방식 ----
+    const sentEl = root.querySelector<HTMLElement>('[data-sent]')!;
+    const barsEl = root.querySelector<HTMLElement>('[data-bars]')!;
+    const startsEl = root.querySelector<HTMLElement>('[data-starts]')!;
+    let words: string[] = [];
+    starts.forEach((w) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'ghost'; b.textContent = w;
+      b.addEventListener('click', () => { words = [w]; drawGpt(); });
+      startsEl.appendChild(b);
+    });
+    function drawGpt() {
+      const ended = words[words.length - 1] === END;
+      sentEl.innerHTML = words.length ? words.filter((w) => w !== END).join(' ') + (ended ? '.' : ' <span class="cursor">…</span>') : '<span class="cursor">첫 단어를 고르세요</span>';
+      if (!words.length || ended) { barsEl.innerHTML = ended ? '<p class="empty">문장이 끝났습니다. 첫 단어를 다시 골라 보세요.</p>' : ''; return; }
+      bars(barsEl, probs(next.get(words[words.length - 1])), (w) => { words.push(w); drawGpt(); });
+    }
+    root.querySelector('[data-auto]')!.addEventListener('click', () => {
+      if (!words.length || words[words.length - 1] === END) words = [starts[Math.floor(Math.random() * starts.length)]];
+      while (words[words.length - 1] !== END && words.length < 12) {
+        const list = probs(next.get(words[words.length - 1]));
+        let r = Math.random(), pick = list[0][0];
+        for (const [w, p] of list) { if ((r -= p) <= 0) { pick = w; break; } }
+        words.push(pick);
+      }
+      drawGpt();
+    });
+    root.querySelector('[data-back]')!.addEventListener('click', () => { words.pop(); drawGpt(); });
+    drawGpt();
+
+    // ---- BERT 방식 ----
+    const bsent = root.querySelector<HTMLElement>('[data-bsent]')!;
+    const bleft = root.querySelector<HTMLElement>('[data-bleft]')!;
+    const bboth = root.querySelector<HTMLElement>('[data-bboth]')!;
+    function newQ() {
+      let w: string[], k: number;
+      do { w = sents[Math.floor(Math.random() * sents.length)]; k = 1 + Math.floor(Math.random() * (w.length - 2)); } while (w.length < 3);
+      const left = w[k - 1], right = w[k + 1], answer = w[k];
+      bsent.innerHTML = [...w.slice(0, k), '<span class="blank">?</span>', ...w.slice(k + 1)].join(' ');
+      const leftOnly = probs(next.get(left));
+      const both = new Map<string, number>();
+      leftOnly.forEach(([c, p]) => {
+        const q = next.get(c)?.get(right) || 0;
+        if (q) both.set(c, p * q);
+      });
+      const tot = [...both.values()].reduce((a, b) => a + b, 0);
+      const bothList = [...both.entries()].map(([c, v]) => [c, v / tot] as [string, number]).sort((a, b) => b[1] - a[1]);
+      const reveal = () => {
+        bsent.innerHTML = [...w.slice(0, k), `<span class="blank">${answer}</span>`, ...w.slice(k + 1)].join(' ');
+        bars(bleft, leftOnly, undefined, answer); bars(bboth, bothList, undefined, answer);
+      };
+      bars(bleft, leftOnly, reveal);
+      bars(bboth, bothList, reveal);
+    }
+    root.querySelector('[data-newq]')!.addEventListener('click', newQ);
+    newQ();
+
+    root.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((b) => b.addEventListener('click', () => {
+      root.querySelectorAll('[data-mode]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      root.querySelectorAll<HTMLElement>('[data-pane]').forEach((p) => (p.hidden = p.dataset.pane !== b.dataset.mode));
+    }));
+  });
+</script>

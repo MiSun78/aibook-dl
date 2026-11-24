@@ -16,8 +16,8 @@ import Base from '../layouts/Base.astro';
 |---|---|---|---|
 | 03-1 인공 신경망의 이해 (126~132) | 20~21차시 | 1차시: 퍼셉트론부터 활동 8까지 | 1차시: 활동 8은 시연으로 |
 | 03-2 신경망 모델 설계와 구현 과정 (133~142) | 22~24차시 | 2차시: 구현 과정과 식품 분류 예제<br />3차시: 실습 5, 더 알아보기 | 2차시: 식품 예제는 코드 읽기로, 실습 5 실행 |
-| 03-3 컴퓨터 비전 (143~154) | 25~28차시 | 4차시: 컴퓨터 비전, 활동 9~11<br />5차시: 실습 6 | 3차시: 활동 10·11 중심, 실습 6은 시연 |
-| 03-4 음성 인식과 자연어 처리 (155~161) | 29~32차시 | 6차시: 활동 12·13, BERT와 GPT | 4차시: 같은 내용을 압축 |
+| 03-3 컴퓨터 비전 (143~154) | 25~28차시 | 4차시: 컴퓨터 비전, 활동 9~11 (활동 10은 사이트의 합성곱 위젯으로)<br />5차시: 전이 학습, 실습 6 | 3차시: 활동 9는 시연, 활동 10·11은 위젯으로, 실습 6은 교사 시연 후 학생은 ⑤~⑦만 바꿔 실행 |
+| 03-4 음성 인식과 자연어 처리 (155~161) | 29~32차시 | 6차시: 스피커 흉내, 소리 그림, 활동 12, BERT와 GPT(언어 모델 흉내), 활동 13 | 4차시: 스피커 흉내와 언어 모델 흉내 중심, 활동 12·13은 과제로 |
 
 ## 교과서와 다르게 한 부분
 
@@ -28,6 +28,13 @@ import Base from '../layouts/Base.astro';
 | 137~140쪽 실습 5 코드 | 같은 순서의 코드를 접어 두고, 노드 수와 학습 횟수는 선택 상자로 바꾸게 함 | 코드를 직접 짜기 어려운 학생도 실행하고 결과를 해석할 수 있게 |
 | 141쪽 더 알아보기 (사진 촬영 후 코랩) | 화면에 숫자를 그리면 바로 분류하는 그리기 판 | 촬영, 업로드 없이 몇 분 안에 끝낼 수 있게 |
 | 134~137쪽 식품 분류 예제 | 같은 내용을 코드와 함께 설명 | 예제 코랩 노트북은 교과서 데이터(food_nn.csv)를 받으면 추가 예정 |
+| 145쪽 활동 9 (YOLOv4 다크넷 노트북) | 같은 YOLO 계열 최신 모델(ultralytics)로 만든 노트북, 교과서 노트북도 안내 | 다크넷 컴파일에 몇 분이 걸려서 |
+| 146쪽 활동 10 (Image Kernels 사이트) | 합성곱을 한 칸씩 계산하는 위젯과 사진에 필터를 적용하는 위젯 | 계산 과정을 숫자로 직접 따라가고, 학교망에서 사이트가 막혀도 할 수 있게 |
+| 147쪽 최대 풀링 | 필터 위젯에 최대 풀링 결과를 함께 보여 줌 | 합성곱과 풀링을 한 화면에서 연결하려고 |
+| 149~153쪽 실습 6 코드 | 같은 순서의 코드를 접어 두고, 은닉층 노드 수와 학습 횟수를 선택 상자로 바꾸게 함. 틀린 사진 보기, 내 사진 예측 칸을 덧붙임 | 결과 해석에 시간을 쓰게 하려고 |
+| 155쪽 인공지능 스피커 동작 과정 | 말하거나 적은 문장이 네 단계로 처리되는 모습을 보여 주는 스피커 흉내 위젯 (교과서 밖 활동) | 자연어 처리 단계를 직접 확인하게 하려고. 형태소 분석과 문장 구조는 간단한 규칙으로 흉내 낸 것임을 안내해 주세요 |
+| 156쪽 음향 모델 | 마이크 소리를 실시간 스펙트로그램으로 보여 주는 위젯 (교과서 밖 활동) | 음향 모델이 보는 '소리의 무늬'를 눈으로 확인하게 하려고 |
+| 158~159쪽 BERT와 GPT | 문장 40개로 만든 작은 언어 모델로 다음 단어 예측과 빈칸 채우기를 해 보는 위젯 (교과서 밖 활동) | 두 훈련 방식의 차이(앞만 보기, 앞뒤 모두 보기)를 확률로 직접 비교하게 하려고 |
 
 ## 코랩 노트북
 
@@ -36,6 +43,10 @@ import Base from '../layouts/Base.astro';
 | 교과서 | 학생용 | 교사용 |
 |---|---|---|
 | 실습 5 (137~140쪽) | [practice5_mnist_student.ipynb](/notebooks/practice5_mnist_student.ipynb) | [practice5_mnist_teacher.ipynb](/notebooks/practice5_mnist_teacher.ipynb) |
+| 활동 9 (145쪽) | [activity9_yolo.ipynb](/notebooks/activity9_yolo.ipynb) | [activity9_yolo_teacher.ipynb](/notebooks/activity9_yolo_teacher.ipynb) |
+| 실습 6 (149~153쪽) | [practice6_crack_student.ipynb](/notebooks/practice6_crack_student.ipynb) | [practice6_crack_teacher.ipynb](/notebooks/practice6_crack_teacher.ipynb) |
+
+실습 6에는 교과서 149쪽 링크의 crack.zip이 필요합니다. 학생이 ①에서 직접 올리거나, 내 드라이브/data/crack에 압축을 풀어 두고 '구글 드라이브'를 고르면 됩니다. 교사용 노트북에는 VGG16 없이 처음부터 학습한 작은 CNN과 정확도를 비교하는 칸이 더 있습니다.
 
 ## 성취수준과 연결
 
@@ -43,10 +54,12 @@ import Base from '../layouts/Base.astro';
 |---|---|---|
 | 02-05 (03-1) | 딥러닝 활용 분야를 탐색한다 (활동 8) | 퍼셉트론의 한계와 은닉층의 역할을 원리로 설명한다 (정리하기 1·2번), 활용 분야를 다양하게 탐색한다 |
 | 02-06 (03-2) | 실습 5에서 테스트 데이터로 성능을 평가하고 기록한다 | 설정을 바꿔 성능을 비교하고, 내가 쓴 숫자를 틀린 이유를 학습 데이터와 연결해 설명한다 |
+| 02-06 (03-3) | 컴퓨터 비전 기술의 활용 예를 찾고, 실습 6을 실행해 정확도와 혼동 행렬을 기록한다 | 합성곱 층·풀링 층의 역할을 필터와 특징맵으로 설명하고, 틀린 사진의 공통점과 전이 학습의 장점을 근거를 들어 설명한다 |
+| 02-06 (03-4) | 음성 인식과 자연어 처리의 과정을 순서대로 말한다 | 스피커 흉내가 실패하는 문장을 찾아 그 이유를 설명하고, BERT와 GPT의 훈련 방식 차이를 예를 들어 설명한다 |
 
 ## 학생 기록 모으기
 
-**구글 문서 학습지(권장).** 단원마다 구글 문서 학습지가 있습니다: [03-1 학습지](https://docs.google.com/document/d/1eQd5JTBq60AkIeaWRrG45suPNh9kiX5ps7rp6rvxxRs/edit), [03-2 학습지](https://docs.google.com/document/d/11ejDgD3mApFvbUp00lJs2FOrUd2SkcrVn81ef8OZDYc/edit).
+**구글 문서 학습지(권장).** 단원마다 구글 문서 학습지가 있습니다: [03-1 학습지](https://docs.google.com/document/d/1eQd5JTBq60AkIeaWRrG45suPNh9kiX5ps7rp6rvxxRs/edit), [03-2 학습지](https://docs.google.com/document/d/11ejDgD3mApFvbUp00lJs2FOrUd2SkcrVn81ef8OZDYc/edit), [03-3 학습지](https://docs.google.com/document/d/1X5e8pNLh1aOivnRUZTny9nBnPfFtVOZEHDAtuVTdJrk/edit), [03-4 학습지](https://docs.google.com/document/d/17NzbvDT5GQfdekmpRRGYfRc_9WJZc_2xdKRy2IbfgeI/edit).
 
 - 구글 클래스룸 과제에 학습지를 첨부하고 **학생별로 사본 제공**을 고르면 제출과 채점까지 클래스룸에서 할 수 있습니다.
 - 사이트 정리하기에 [내 학습지 만들기] 버튼을 켤 수도 있습니다. 원본 공유를 '학교 도메인 사용자 보기 가능' 이상으로 바꾼 뒤 src/config.ts의 `worksheetButton`을 `true`로 바꾸면 학생 드라이브에 사본을 만드는 버튼이 나타납니다. 지금은 꺼져 있습니다.
@@ -56,6 +69,8 @@ import Base from '../layouts/Base.astro';
 ## 수업 전 점검
 
 - 학교 인터넷에서 이 사이트, colab.research.google.com, playground.tensorflow.org, mediapipe-studio.webapps.google.com이 열리는지 확인합니다.
+- 03-3: 활동 9 노트북은 github.com과 ultralytics.com에서, 실습 6은 storage.googleapis.com에서 모델을 내려받습니다. setosa.io(활동 10), poloclub.github.io(활동 11), tensorspace.org(148쪽)도 확인합니다.
+- 03-4: 스피커 흉내의 🎤와 소리 그림 위젯은 브라우저의 마이크 권한이 필요합니다. 🎤 음성 입력은 크롬·엣지에서만 되고 인터넷 연결이 필요합니다. 클로바 노트(활동 12)는 네이버 로그인, 시멘트리스(활동 13)는 research.google.com 접속이 필요합니다.
 - 교사용 노트북을 한 번 끝까지 실행해 두면 데이터 내려받기와 학습 시간을 가늠할 수 있습니다.
 
 </article>

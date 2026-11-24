@@ -1,0 +1,47 @@
+---
+import './fig.css';
+// 2×2 최대 풀링 예시 (교과서와 다른 수)
+const M = [
+  [3, 1, 0, 2],
+  [5, 2, 4, 1],
+  [1, 0, 2, 6],
+  [2, 4, 3, 1],
+];
+const tint = ['#e3ecfd', '#fdf3dc', '#fde7ea', '#e6f4ea'];
+const edge = ['#2563eb', '#f2a516', '#e0464e', '#2f9e5b'];
+const q = (r: number, c: number) => (r < 2 ? 0 : 2) + (c < 2 ? 0 : 1);
+const out = [[5, 4], [4, 6]];
+const S = 34;
+---
+<figure class="fg">
+  <svg viewBox="0 0 360 200" role="img" aria-label="4×4 특징맵을 2×2 칸씩 나누어 각 칸에서 가장 큰 값만 남기면 2×2 크기가 된다">
+    <defs>
+      <marker id="fpl-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#3a4560" /></marker>
+    </defs>
+    <text x="88" y="22" class="tb c">특징맵 (4×4)</text>
+    {M.map((row, r) => row.map((v, c) => {
+      const k = q(r, c);
+      const big = out[r < 2 ? 0 : 1][c < 2 ? 0 : 1] === v && M.flat().indexOf(v) >= 0;
+      return (
+        <g>
+          <rect x={20 + c * S} y={34 + r * S} width={S} height={S} fill={tint[k]} stroke="#fff" stroke-width="2" />
+          <text x={20 + c * S + S / 2} y={34 + r * S + 22} class="t c" style={big ? `font-weight:800;fill:${edge[k]}` : ''}>{v}</text>
+        </g>
+      );
+    }))}
+    {[0, 1, 2, 3].map((k) => (
+      <rect x={20 + (k % 2) * 2 * S} y={34 + Math.floor(k / 2) * 2 * S} width={2 * S} height={2 * S} fill="none" stroke={edge[k]} stroke-width="2" />
+    ))}
+    <line x1="166" y1="102" x2="214" y2="102" class="arw" marker-end="url(#fpl-a)" />
+    <text x="190" y="92" class="ts c">가장 큰 값</text>
+    <text x="276" y="56" class="tb c">결과 (2×2)</text>
+    {out.map((row, r) => row.map((v, c) => (
+      <g>
+        <rect x={242 + c * S} y={68 + r * S} width={S} height={S} fill={tint[r * 2 + c]} stroke={edge[r * 2 + c]} stroke-width="2" />
+        <text x={242 + c * S + S / 2} y={68 + r * S + 22} class="t c" style={`font-weight:800;fill:${edge[r * 2 + c]}`}>{v}</text>
+      </g>
+    )))}
+    <text x="180" y="193" class="ts c">크기는 4분의 1로 줄고, 강한 특징값은 남는다</text>
+  </svg>
+  <figcaption>최대 풀링(max pooling): 2×2 칸마다 가장 큰 값만 고른다.</figcaption>
+</figure>

@@ -1,0 +1,61 @@
+---
+import './fig.css';
+// 같은 장면(사람과 강아지)에 대한 네 가지 컴퓨터 비전 기술
+const P = [
+  { x: 10, y: 10, t: '이미지 분류', d: '사진 전체가 무엇인지' },
+  { x: 235, y: 10, t: '객체 탐지', d: '위치와 종류 (상자)' },
+  { x: 10, y: 160, t: '객체 세그멘테이션', d: '픽셀 단위로 경계 나누기' },
+  { x: 235, y: 160, t: '자세 추정', d: '관절의 위치 찾기' },
+];
+const W = 215, H = 140;
+// 장면 요소 좌표 (패널 기준)
+const person = { hx: 70, hy: 44, r: 11 };
+---
+<figure class="fg">
+  <svg viewBox="0 0 460 310" role="img" aria-label="사람과 강아지가 있는 같은 장면에 이미지 분류, 객체 탐지, 객체 세그멘테이션, 자세 추정을 적용한 모습">
+    {P.map((p, i) => (
+      <g transform={`translate(${p.x},${p.y})`}>
+        <rect width={W} height={H} rx="8" fill="#f6f7f9" stroke="#dde1e8" />
+        <line x1="10" y1="112" x2={W - 10} y2="112" stroke="#b9c0cc" />
+        {/* 사람 */}
+        <circle cx={person.hx} cy={person.hy} r={person.r} fill="#fff" stroke="#172038" stroke-width="2" />
+        <path d="M60 56 h20 l6 30 h-8 l-2 26 h-6 l-2 -20 l-2 20 h-6 l-2 -26 h-8z" fill="#fff" stroke="#172038" stroke-width="2" stroke-linejoin="round" />
+        {/* 강아지 */}
+        <path d="M118 84 q4 -14 22 -12 h22 q12 -12 20 -2 q4 10 -6 14 v28 h-6 v-18 h-26 v18 h-6 v-20 q-14 2 -20 -8z" fill="#fff" stroke="#172038" stroke-width="2" stroke-linejoin="round" />
+        <circle cx="182" cy="76" r="1.8" fill="#172038" />
+        {/* 세그멘테이션 마스크 */}
+        {i === 2 && <>
+          <path d="M59 42 a11 11 0 1 1 22 0 a11 11 0 1 1 -22 0z M60 56 h20 l6 30 h-8 l-2 26 h-6 l-2 -20 l-2 20 h-6 l-2 -26 h-8z" fill="#2563eb" opacity="0.45" />
+          <path d="M118 84 q4 -14 22 -12 h22 q12 -12 20 -2 q4 10 -6 14 v28 h-6 v-18 h-26 v18 h-6 v-20 q-14 2 -20 -8z" fill="#f2a516" opacity="0.6" />
+        </>}
+        {i === 0 && <>
+          <rect x="44" y="118" width="128" height="18" rx="9" fill="#172038" />
+          <text x="108" y="131" class="ts c" style="fill:#fff">공원 산책 사진 (92%)</text>
+        </>}
+        {i === 1 && <>
+          <rect x="54" y="28" width="38" height="86" fill="none" stroke="#2563eb" stroke-width="2.5" />
+          <rect x="54" y="16" width="44" height="13" fill="#2563eb" />
+          <text x="57" y="26" style="font-size:9px;fill:#fff;font-weight:700">사람 0.96</text>
+          <rect x="114" y="64" width="78" height="50" fill="none" stroke="#e0464e" stroke-width="2.5" />
+          <rect x="114" y="52" width="50" height="13" fill="#e0464e" />
+          <text x="117" y="62" style="font-size:9px;fill:#fff;font-weight:700">강아지 0.91</text>
+        </>}
+        {i === 3 && <>
+          <g stroke="#e0464e" stroke-width="2.5" fill="none" stroke-linecap="round">
+            <path d="M70 55 L70 84 M70 60 L58 76 M70 60 L84 76 M70 84 L64 110 M70 84 L76 110" />
+          </g>
+          {[[70, 44], [70, 60], [58, 76], [84, 76], [70, 84], [64, 110], [76, 110]].map(([x, y]) => (
+            <circle cx={x} cy={y} r="3.5" fill="#f2a516" stroke="#172038" stroke-width="1.2" />
+          ))}
+        </>}
+      </g>
+    ))}
+    {P.map((p) => (
+      <g>
+        <text x={p.x + W - 10} y={p.y + 22} class="tb e">{p.t}</text>
+        <text x={p.x + W - 10} y={p.y + 38} class="ts e">{p.d}</text>
+      </g>
+    ))}
+  </svg>
+  <figcaption>같은 사진이라도 무엇을 알아내느냐에 따라 기술이 다르다. 자율주행 자동차는 이 기술들을 함께 쓴다.</figcaption>
+</figure>

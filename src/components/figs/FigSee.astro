@@ -1,0 +1,63 @@
+---
+import './fig.css';
+// 사람과 컴퓨터가 물체를 알아보는 방법 비교
+const px = [
+  [0, 0, 1, 1, 1, 0],
+  [0, 1, 3, 3, 1, 0],
+  [1, 3, 4, 4, 3, 1],
+  [1, 3, 4, 4, 3, 1],
+  [0, 1, 3, 3, 1, 0],
+  [0, 0, 1, 1, 0, 0],
+];
+const vals = [12, 70, 150, 205, 240];
+---
+<figure class="fg">
+  <svg viewBox="0 0 460 260" role="img" aria-label="사람은 눈으로 본 것을 뇌가 바로 이해하고, 컴퓨터는 카메라가 만든 픽셀 숫자 배열을 인식 모델이 해석해야 무엇인지 안다">
+    <defs>
+      <marker id="fse-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#3a4560" /></marker>
+    </defs>
+    <text x="14" y="26" class="th">사람</text>
+    <!-- 공 -->
+    <circle cx="52" cy="72" r="22" fill="#f2a516" stroke="#172038" stroke-width="2" />
+    <path d="M34 62 Q52 72 70 62 M34 82 Q52 72 70 82" fill="none" stroke="#172038" stroke-width="1.5" />
+    <line x1="80" y1="72" x2="118" y2="72" class="arw" marker-end="url(#fse-a)" />
+    <!-- 눈 -->
+    <path d="M124 72 Q146 54 168 72 Q146 90 124 72z" fill="#fff" stroke="#172038" stroke-width="2" />
+    <circle cx="146" cy="72" r="7" fill="#172038" />
+    <text x="146" y="106" class="ts c">눈</text>
+    <line x1="176" y1="72" x2="214" y2="72" class="arw" marker-end="url(#fse-a)" />
+    <!-- 뇌 -->
+    <path d="M222 74 C220 54 240 46 252 54 C262 44 284 48 284 62 C298 66 296 88 282 90 C278 100 256 100 250 94 C238 100 222 92 222 74z" fill="#fde7ea" stroke="#172038" stroke-width="2" />
+    <text x="254" y="116" class="ts c">뇌</text>
+    <line x1="300" y1="72" x2="330" y2="72" class="arw" marker-end="url(#fse-a)" />
+    <rect x="336" y="52" width="110" height="40" rx="20" fill="#fff" stroke="#172038" stroke-width="1.5" />
+    <text x="391" y="77" class="t c">"공이 있네!"</text>
+    <text x="230" y="138" class="ts c">한 번 보고 바로 의미를 안다</text>
+
+    <line x1="14" y1="152" x2="446" y2="152" stroke="#dde1e8" />
+
+    <text x="14" y="178" class="th">컴퓨터</text>
+    <!-- 카메라 -->
+    <rect x="22" y="196" width="50" height="34" rx="5" fill="#172038" />
+    <rect x="34" y="190" width="16" height="8" rx="2" fill="#172038" />
+    <circle cx="47" cy="213" r="10" fill="#fff" /><circle cx="47" cy="213" r="5" fill="#2563eb" />
+    <text x="47" y="246" class="ts c">카메라</text>
+    <line x1="80" y1="213" x2="104" y2="213" class="arw" marker-end="url(#fse-a)" />
+    <!-- 픽셀 숫자 -->
+    {px.map((row, r) => row.map((v, c) => (
+      <g>
+        <rect x={110 + c * 21} y={162 + r * 14} width="21" height="14" fill={`rgb(${vals[v]},${Math.round(vals[v] * 0.72)},${Math.round(vals[v] * 0.15)})`} stroke="#fff" stroke-width="0.6" />
+        <text x={120.5 + c * 21} y={172.5 + r * 14} style={`font-size:8px;fill:${v > 2 ? '#172038' : '#fff'}`} class="c">{vals[v]}</text>
+      </g>
+    )))}
+    <text x="173" y="258" class="ts c">픽셀값(숫자)의 배열</text>
+    <line x1="242" y1="213" x2="266" y2="213" class="arw" marker-end="url(#fse-a)" />
+    <rect x="272" y="192" width="72" height="42" rx="8" class="boxb" />
+    <text x="308" y="217" class="tb c">인식 모델</text>
+    <line x1="348" y1="213" x2="368" y2="213" class="arw" marker-end="url(#fse-a)" />
+    <rect x="372" y="196" width="74" height="34" rx="17" fill="#fff" stroke="#172038" stroke-width="1.5" />
+    <text x="409" y="217" class="t c">공 (97%)</text>
+    <text x="345" y="258" class="ts c">숫자에서 의미를 찾아야 한다</text>
+  </svg>
+  <figcaption>컴퓨터에게 사진은 숫자의 배열이다. 컴퓨터 비전은 이 숫자들이 무엇을 뜻하는지 알아내는 방법을 연구한다.</figcaption>
+</figure>

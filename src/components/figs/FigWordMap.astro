@@ -1,0 +1,26 @@
+---
+import './fig.css';
+// 의미가 비슷한 단어는 가까이 놓인다는 생각을 2차원 지도로 표현
+const groups = [
+  { c: '#2563eb', bg: '#e3ecfd', cx: 100, cy: 80, words: [['바다', 0, 0], ['파도', -38, 26], ['모래', 36, 28], ['여름', 6, -30]] },
+  { c: '#e0464e', bg: '#fde7ea', cx: 330, cy: 72, words: [['사과', 0, 0], ['배', -40, 22], ['포도', 38, 24], ['과일', 0, -28]] },
+  { c: '#2f9e5b', bg: '#e6f4ea', cx: 210, cy: 180, words: [['축구', 0, 0], ['공', -42, 20], ['운동장', 40, 22], ['골', -8, -28]] },
+] as const;
+---
+<figure class="fg">
+  <svg viewBox="0 0 440 250" role="img" aria-label="뜻이 비슷한 단어끼리 가까이 모여 있는 단어 지도: 바다 무리, 과일 무리, 축구 무리">
+    {groups.map((g) => <ellipse cx={g.cx} cy={g.cy + 6} rx="92" ry="54" fill={g.bg} />)}
+    {groups.map((g) => g.words.map(([w, dx, dy]) => (
+      <g>
+        <circle cx={g.cx + dx} cy={g.cy + dy} r="4" fill={g.c} />
+        <text x={g.cx + dx + 7} y={g.cy + dy + 4} class="t" style="font-weight:650">{w}</text>
+      </g>
+    )))}
+    <line x1="106" y1="86" x2="208" y2="174" stroke="#3a4560" stroke-dasharray="4 4" />
+    <text x="128" y="148" class="ts">멀다</text>
+    <line x1="64" y1="108" x2="98" y2="82" stroke="#3a4560" stroke-dasharray="4 4" />
+    <text x="40" y="132" class="ts">가깝다</text>
+    <text x="220" y="244" class="ts c">'배'는 문장에 따라 과일도, 바다 위의 배도 될 수 있다</text>
+  </svg>
+  <figcaption>자연어 처리 모델은 단어를 수로 바꿔 지도 위의 점처럼 다룬다. 뜻이 가까운 단어는 점도 가깝다. 시멘트리스는 이 거리를 이용해 연관 단어를 찾는다.</figcaption>
+</figure>

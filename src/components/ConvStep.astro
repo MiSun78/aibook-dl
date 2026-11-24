@@ -1,0 +1,172 @@
+---
+// 합성곱 연산을 한 칸씩 따라가 보는 위젯 (6×6 이미지, 3×3 필터 → 4×4 특징맵)
+---
+<div class="widget cs" data-convstep>
+  <p class="widget-title">합성곱 연산 한 칸씩 따라가기</p>
+  <p class="widget-help">필터(3×3)가 이미지 위를 한 칸씩 옮겨 가며 겹친 칸끼리 곱해서 모두 더합니다. [다음 칸]을 누르거나 특징맵의 칸을 눌러 보세요. 이미지 칸을 누르면 0과 1이 바뀝니다.</p>
+
+  <div class="cs-filters" role="group" aria-label="필터 고르기">
+    <button type="button" class="ghost" data-f="v" aria-pressed="true">세로선 찾기</button>
+    <button type="button" class="ghost" data-f="h" aria-pressed="false">가로선 찾기</button>
+    <button type="button" class="ghost" data-f="d" aria-pressed="false">대각선 찾기</button>
+  </div>
+
+  <div class="cs-grid">
+    <div>
+      <p class="cs-cap">이미지 (입력)</p>
+      <div class="cs-mat cs-img" data-img></div>
+    </div>
+    <div class="cs-op">×</div>
+    <div>
+      <p class="cs-cap">필터 (가중치)</p>
+      <div class="cs-mat cs-ker" data-ker></div>
+    </div>
+    <div class="cs-op">→</div>
+    <div>
+      <p class="cs-cap">특징맵 (결과)</p>
+      <div class="cs-mat cs-out" data-out></div>
+    </div>
+  </div>
+
+  <p class="cs-calc" data-calc aria-live="polite"></p>
+  <div class="cs-actions">
+    <button type="button" class="btn" data-next>다음 칸</button>
+    <button type="button" class="ghost" data-all>한 번에 모두 계산</button>
+    <button type="button" class="ghost" data-reset>처음부터</button>
+  </div>
+</div>
+
+<style>
+  .cs-filters { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .cs-grid { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  .cs-cap { font-size: 0.85rem; font-weight: 700; margin: 0 0 0.3rem; color: var(--ink-2); }
+  .cs-op { font-size: 1.6rem; font-weight: 800; color: var(--muted); padding-top: 1.2rem; }
+  .cs-mat { display: grid; gap: 2px; }
+  .cs-img { grid-template-columns: repeat(6, 2.3rem); }
+  .cs-ker { grid-template-columns: repeat(3, 2.3rem); }
+  .cs-out { grid-template-columns: repeat(4, 2.3rem); }
+  .cs-mat :global(button), .cs-mat :global(span) {
+    width: 2.3rem; height: 2.3rem; display: grid; place-items: center;
+    font: inherit; font-weight: 700; font-size: 0.95rem; border-radius: 4px;
+    border: 1.5px solid var(--line); background: #fff; color: var(--ink); padding: 0;
+  }
+  .cs-img :global(button) { cursor: pointer; }
+  .cs-img :global(button.on) { background: #172038; color: #fff; border-color: #172038; }
+  .cs-img :global(button.win) { outline: 3px solid var(--fire); outline-offset: -1px; }
+  .cs-img :global(button.on.win) { background: #3a2a05; }
+  .cs-ker :global(span) { background: var(--fire-soft); border-color: var(--fire); }
+  .cs-ker :global(span.neg) { color: var(--neg); }
+  .cs-out :global(button) { cursor: pointer; color: var(--muted); background: var(--surface); }
+  .cs-out :global(button.done) { color: var(--ink); background: #fff; }
+  .cs-out :global(button.cur) { outline: 3px solid var(--fire); outline-offset: -1px; }
+  .cs-out :global(button.hi) { background: var(--pos-soft); color: var(--pos); border-color: var(--pos); }
+  .cs-calc { margin: 1rem 0 0.8rem; font-size: 0.95rem; min-height: 3em; line-height: 1.6; }
+  .cs-calc :global(b) { color: var(--pos); font-size: 1.1rem; }
+  .cs-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  @media (max-width: 640px) {
+    .cs-img, .cs-ker, .cs-out { grid-auto-rows: 1.9rem; }
+    .cs-img { grid-template-columns: repeat(6, 1.9rem); }
+    .cs-ker { grid-template-columns: repeat(3, 1.9rem); }
+    .cs-out { grid-template-columns: repeat(4, 1.9rem); }
+    .cs-mat :global(button), .cs-mat :global(span) { width: 1.9rem; height: 1.9rem; font-size: 0.85rem; }
+    .cs-op { padding-top: 0; }
+  }
+</style>
+
+<script>
+  const FILTERS: Record<string, number[]> = {
+    v: [-1, 1, 0, -1, 1, 0, -1, 1, 0],
+    h: [-1, -1, -1, 1, 1, 1, 0, 0, 0],
+    d: [1, 0, 0, 0, 1, 0, 0, 0, 1],
+  };
+  const START = [
+    0, 0, 0, 0, 0, 0,
+    0, 1, 1, 1, 1, 0,
+    0, 1, 0, 0, 0, 0,
+    0, 1, 0, 1, 0, 0,
+    0, 1, 0, 0, 1, 0,
+    0, 0, 0, 0, 0, 0,
+  ];
+  document.querySelectorAll<HTMLElement>('[data-convstep]').forEach((root) => {
+    let img = START.slice();
+    let ker = FILTERS.v;
+    let done = new Array(16).fill(false);
+    let cur = -1;
+    const imgEl = root.querySelector<HTMLElement>('[data-img]')!;
+    const kerEl = root.querySelector<HTMLElement>('[data-ker]')!;
+    const outEl = root.querySelector<HTMLElement>('[data-out]')!;
+    const calc = root.querySelector<HTMLElement>('[data-calc]')!;
+
+    const imgBtns = img.map((_, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-label', `이미지 ${Math.floor(i / 6) + 1}행 ${(i % 6) + 1}열`);
+      b.addEventListener('click', () => { img[i] = 1 - img[i]; recompute(); });
+      imgEl.appendChild(b);
+      return b;
+    });
+    const kerSpans = Array.from({ length: 9 }, () => { const s = document.createElement('span'); kerEl.appendChild(s); return s; });
+    const outBtns = Array.from({ length: 16 }, (_, k) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-label', `특징맵 ${Math.floor(k / 4) + 1}행 ${(k % 4) + 1}열 계산하기`);
+      b.addEventListener('click', () => { cur = k; done[k] = true; draw(); });
+      outEl.appendChild(b);
+      return b;
+    });
+
+    const val = (k: number) => {
+      const r = Math.floor(k / 4), c = k % 4;
+      let s = 0;
+      for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) s += img[(r + i) * 6 + c + j] * ker[i * 3 + j];
+      return s;
+    };
+
+    function draw() {
+      const vals = outBtns.map((_, k) => val(k));
+      const max = Math.max(...vals);
+      const r = Math.floor(cur / 4), c = cur % 4;
+      imgBtns.forEach((b, i) => {
+        b.textContent = String(img[i]);
+        b.classList.toggle('on', img[i] === 1);
+        const ir = Math.floor(i / 6), ic = i % 6;
+        b.classList.toggle('win', cur >= 0 && ir >= r && ir < r + 3 && ic >= c && ic < c + 3);
+      });
+      kerSpans.forEach((s, i) => { s.textContent = String(ker[i]); s.classList.toggle('neg', ker[i] < 0); });
+      outBtns.forEach((b, k) => {
+        b.textContent = done[k] ? String(vals[k]) : '?';
+        b.classList.toggle('done', done[k]);
+        b.classList.toggle('cur', k === cur);
+        b.classList.toggle('hi', done.every(Boolean) && vals[k] === max && max > 0);
+      });
+      if (cur < 0) {
+        calc.textContent = '필터는 이미지의 왼쪽 위에서 시작합니다. [다음 칸]을 눌러 보세요.';
+      } else {
+        const terms: string[] = [];
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+          const w = ker[i * 3 + j];
+          if (w !== 0) terms.push(`${img[(r + i) * 6 + c + j]}×(${w})`);
+        }
+        calc.innerHTML = `${r + 1}행 ${c + 1}열: ${terms.join(' + ')} = <b>${vals[cur]}</b>` +
+          (done.every(Boolean) ? `<br>파란 칸이 가장 큰 값입니다. 이미지에서 이 필터가 찾는 모양이 가장 뚜렷한 곳이에요.` : '');
+      }
+    }
+    function recompute() { draw(); }
+
+    root.querySelector('[data-next]')!.addEventListener('click', () => {
+      cur = (cur + 1) % 16; done[cur] = true; draw();
+    });
+    root.querySelector('[data-all]')!.addEventListener('click', () => {
+      done = done.map(() => true); cur = 15; draw();
+    });
+    root.querySelector('[data-reset]')!.addEventListener('click', () => {
+      done = done.map(() => false); cur = -1; img = START.slice(); draw();
+    });
+    root.querySelectorAll<HTMLButtonElement>('[data-f]').forEach((b) => b.addEventListener('click', () => {
+      ker = FILTERS[b.dataset.f!];
+      root.querySelectorAll('[data-f]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      draw();
+    }));
+    draw();
+  });
+</script>

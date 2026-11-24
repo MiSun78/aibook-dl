@@ -1,0 +1,95 @@
+---
+// 마이크 소리를 스펙트로그램(소리 그림)으로 보여 주는 위젯
+---
+<div class="widget sv" data-soundview>
+  <p class="widget-title">소리를 그림으로 보기</p>
+  <p class="widget-help">[마이크 켜기]를 누르고 "아-이-우-에-오"를 천천히 말해 보세요. 가로는 시간, 세로는 소리의 높낮이(주파수), 밝기는 소리의 세기입니다. 음향 모델은 이런 소리의 무늬에서 특징을 뽑아 어떤 소리인지 판단합니다.</p>
+  <div class="sv-actions">
+    <button type="button" class="btn" data-start>마이크 켜기</button>
+    <button type="button" class="ghost" data-pause disabled>멈추기</button>
+    <span class="sv-status" data-status aria-live="polite"></span>
+  </div>
+  <div class="sv-frame">
+    <span class="sv-ax sv-hi">높은 소리</span>
+    <canvas data-canvas width="720" height="220" aria-label="소리의 주파수를 시간에 따라 보여 주는 그림"></canvas>
+    <span class="sv-ax sv-lo">낮은 소리</span>
+  </div>
+  <p class="sv-note">소리는 이 기기 안에서만 그림으로 바뀌고, 녹음되거나 어디로 보내지지 않습니다.</p>
+</div>
+
+<style>
+  .sv-actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.8rem; }
+  .sv-status { font-size: 0.85rem; color: var(--muted); }
+  .sv-frame { position: relative; }
+  .sv-frame canvas { width: 100%; height: auto; display: block; background: #0d1326; border-radius: var(--radius-s); }
+  .sv-ax { position: absolute; left: 0.5rem; font-size: 0.72rem; color: #c9d2e6; }
+  .sv-hi { top: 0.4rem; }
+  .sv-lo { bottom: 0.4rem; }
+  .sv-note { font-size: 0.82rem; color: var(--muted); margin: 0.5rem 0 0; }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-soundview]').forEach((root) => {
+    const cv = root.querySelector<HTMLCanvasElement>('[data-canvas]')!;
+    const ctx = cv.getContext('2d')!;
+    const start = root.querySelector<HTMLButtonElement>('[data-start]')!;
+    const pause = root.querySelector<HTMLButtonElement>('[data-pause]')!;
+    const status = root.querySelector<HTMLElement>('[data-status]')!;
+    let ac: AudioContext | null = null, an: AnalyserNode | null = null, stream: MediaStream | null = null, raf = 0;
+
+    ctx.fillStyle = '#0d1326'; ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.fillStyle = '#5b6478'; ctx.font = '15px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('마이크를 켜면 여기에 소리 그림이 나타납니다', cv.width / 2, cv.height / 2);
+
+    function color(v: number) {
+      // 0~1 → 남색 → 파랑 → 호박색 → 흰색
+      const stops = [[13, 19, 38], [37, 99, 235], [242, 165, 22], [255, 255, 255]];
+      const x = Math.min(0.999, Math.max(0, v)) * (stops.length - 1);
+      const i = Math.floor(x), t = x - i;
+      const a = stops[i], b = stops[i + 1];
+      return `rgb(${a.map((c, k) => Math.round(c + (b[k] - c) * t)).join(',')})`;
+    }
+
+    function draw() {
+      if (!an) return;
+      const bins = new Uint8Array(an.frequencyBinCount);
+      an.getByteFrequencyData(bins);
+      const maxHz = 5000, nyq = (ac as AudioContext).sampleRate / 2;
+      const use = Math.floor(bins.length * maxHz / nyq);
+      const img = ctx.getImageData(2, 0, cv.width - 2, cv.height);
+      ctx.putImageData(img, 0, 0);
+      for (let y = 0; y < cv.height; y++) {
+        const k = Math.floor((1 - y / cv.height) * use);
+        ctx.fillStyle = color(bins[k] / 255);
+        ctx.fillRect(cv.width - 2, y, 2, 1);
+      }
+      raf = requestAnimationFrame(draw);
+    }
+
+    start.addEventListener('click', async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        ac = new AudioContext();
+        an = ac.createAnalyser();
+        an.fftSize = 1024;
+        an.smoothingTimeConstant = 0.2;
+        ac.createMediaStreamSource(stream).connect(an);
+        ctx.fillStyle = '#0d1326'; ctx.fillRect(0, 0, cv.width, cv.height);
+        start.disabled = true; pause.disabled = false;
+        status.textContent = '듣고 있어요.';
+        draw();
+      } catch {
+        status.textContent = '마이크를 쓸 수 없어요. 브라우저의 마이크 권한을 확인하세요.';
+      }
+    });
+    pause.addEventListener('click', () => {
+      cancelAnimationFrame(raf);
+      stream?.getTracks().forEach((t) => t.stop());
+      ac?.close();
+      an = null; ac = null; stream = null;
+      start.disabled = false; pause.disabled = true;
+      start.textContent = '다시 켜기';
+      status.textContent = '멈췄어요. 그림을 친구와 비교해 보세요.';
+    });
+  });
+</script>

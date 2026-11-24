@@ -1,0 +1,230 @@
+import Lesson from '../../layouts/Lesson.astro';
+import Sec from '../../components/Sec.astro';
+import Ask from '../../components/Ask.astro';
+import Record from '../../components/Record.astro';
+import Colab from '../../components/Colab.astro';
+import Split from '../../components/Split.astro';
+import NetDiagram from '../../components/NetDiagram.astro';
+import ConvStep from '../../components/ConvStep.astro';
+import ConvFilter from '../../components/ConvFilter.astro';
+import FigSee from '../../components/figs/FigSee.astro';
+import FigVisionTasks from '../../components/figs/FigVisionTasks.astro';
+import FigCNN from '../../components/figs/FigCNN.astro';
+import FigPool from '../../components/figs/FigPool.astro';
+import FigTransfer from '../../components/figs/FigTransfer.astro';
+
+<Lesson n={3} ids={['s1', 'a9', 's2', 'a10', 'a11', 'more', 'p6', 'orange']}>
+
+<Sec id="s1" title="컴퓨터 비전의 이해와 활용 사례" pages="143~144쪽">
+
+### 컴퓨터 비전
+
+<Split>
+<div>
+
+사람은 눈으로 본 물체를 이해하고 그것이 무엇인지 안다. **컴퓨터 비전**(computer vision)은 컴퓨터가 이미지나 비디오에서 물체(객체)를 알아보는 방법을 연구하는 분야이다.
+
+사람의 시각은 이미지를 보고 단번에 상황과 의미를 파악한다. 하지만 컴퓨터에게 이미지는 픽셀값이라는 숫자를 늘어놓은 것일 뿐이다. 그래서 컴퓨터 비전에서는 이미지 안에서 물체의 위치를 찾고, 그 물체가 무엇인지 알아내는 방법을 연구한다.
+
+</div>
+<FigSee />
+</Split>
+
+### 컴퓨터 비전 활용 사례
+
+<Split>
+<div>
+
+컴퓨터 비전은 이미 우리 주변 곳곳에서 쓰인다. 앱으로 얼굴에 스티커를 붙이거나, 얼굴·홍채 인식으로 스마트폰 잠금을 풀거나, SNS에 사진을 올리면 사람을 자동으로 태그하는 기능이 그 예이다. 특히 자율주행 자동차는 주변의 물체를 실시간으로 찾고 주변 환경을 알아보며 움직인다.
+
+- **객체 탐지**(object detection): 이미지나 비디오에서 특정 물체의 위치를 찾아낸다. 예) 교통사고를 막는 AI CCTV, 자율주행 자동차, 자연재해 감지
+- **객체 세그멘테이션**(object segmentation): 물체의 경계를 픽셀 단위로 정확하게 나눈다. 예) 의료 영상에서 암 찾기, 위성 사진으로 지형 분석
+- **자세 추정**(pose estimation): 사람이나 물체의 관절 위치를 찾아 자세를 알아낸다. 예) 운동 자세 분석, 게임, 길에 쓰러진 사람 찾기
+
+</div>
+<FigVisionTasks />
+</Split>
+
+</Sec>
+
+<Sec id="a9" title="컴퓨터 비전 객체 탐지 기술 체험하기" pages="145쪽" kind="활동 9">
+
+객체 탐지는 이미지나 동영상에서 특정 물체를 찾아 그 위치와 범위를 알아내는 기술이다. **YOLO**(You Only Look Once)는 이름처럼 이미지 전체를 **한 번만 보고** 여러 물체의 위치와 종류를 동시에 예측한다. 그래서 빠르고, 실시간으로 쓰기 좋다.
+
+<Colab file="activity9_yolo.ipynb" title="활동 9 객체 탐지 체험하기 (YOLO)" minutes="약 10분">
+
+1. ①을 실행해 YOLO와 사전 훈련된 모델을 준비한다.
+2. ②에서 예시 사진을 고르거나 내 사진을 올린다.
+3. ③을 실행해 사진 속 물체를 찾는다. 신뢰도 기준을 바꿔 가며 다시 실행해 본다.
+
+</Colab>
+
+교과서의 원래 노트북(YOLOv4 다크넷, 교과서 145쪽 링크)도 같은 순서로 쓸 수 있다. 다크넷을 설치하는 데 몇 분이 걸리므로 시간이 부족하면 위 노트북을 쓴다.
+
+<Ask>
+
+신뢰도 기준을 아주 낮게(0.05), 아주 높게(0.9) 바꿔 보자. 찾아낸 물체는 어떻게 달라지는가? 그 이유는 무엇일까?
+
+</Ask>
+
+</Sec>
+
+<Sec id="s2" title="합성곱 신경망의 이해" pages="146쪽">
+
+<Split>
+<div>
+
+신경망 모델 중 **합성곱 신경망**(CNN; Convolutional Neural Network)은 이미지 인식에 뛰어나서 컴퓨터 비전에서 큰 역할을 한다.
+
+합성곱 신경망은 완전 연결 계층에 **합성곱 층**과 **풀링 층**이라는 특별한 층을 더한 인공 신경망이다.
+
+- **합성곱 층**(convolution layer): 이미지의 특징을 추출한다.
+- **풀링 층**(pooling layer): 추출된 특징 중 중요한 부분만 남겨 데이터의 크기를 줄인다.
+- **완전 연결 계층**(fully connected layer): 이전 층의 모든 노드를 다음 층의 모든 노드와 연결한 신경망으로, 추출한 특징값을 입력으로 받아 분류한다.
+
+이 과정을 반복하면 크기가 큰 이미지에서 핵심 특징만 뽑아낼 수 있어 분류에 큰 도움이 된다. 합성곱 신경망은 이미지 전체의 패턴이 아니라 **특징**에 초점을 맞춰 알아본다.
+
+</div>
+<FigCNN />
+</Split>
+
+앞쪽 합성곱 층은 선이나 모서리처럼 단순한 특징을 찾고, 뒤쪽 층으로 갈수록 눈, 귀, 얼굴처럼 여러 특징이 조합된 복잡한 특징을 찾는다.
+
+</Sec>
+
+<Sec id="a10" title="합성곱 연산으로 이미지 특징을 추출하는 과정 이해하기" pages="146쪽" kind="활동 10">
+
+**필터**(filter, 커널 kernel)는 이미지의 특징을 추출하는 작은 사각형 배열이고, 그 안의 숫자들이 가중치이다. **합성곱 연산**은 필터를 이미지의 왼쪽 위부터 한 칸씩 옮기며, 겹친 칸의 픽셀값과 가중치를 곱해서 모두 더하는 연산이다. 연산이 끝나고 나온 결과를 **특징맵**(feature map)이라고 한다.
+
+<ConvStep />
+
+필터마다 찾는 특징이 다르다. 합성곱 층에서 여러 필터로 여러 특징맵을 만드는 이유는 한 번에 최대한 많은 특징을 뽑아내기 위해서이다. 이번에는 사진에 필터를 적용해 보자.
+
+<ConvFilter />
+
+교과서 활동 10의 Image Kernels 사이트(교과서 146쪽 링크)에서도 같은 활동을 할 수 있다.
+
+<Ask>
+
+'세로선' 필터와 '가로선' 필터를 적용한 특징맵에서 밝게 나타나는 곳은 각각 어디인가? 필터의 숫자 배치와 어떤 관계가 있을까?
+
+</Ask>
+
+</Sec>
+
+<Sec id="a11" title="합성곱 신경망(CNN) 동작 과정 이해하기" pages="147쪽" kind="활동 11">
+
+<Split>
+<div>
+
+**풀링 층**은 합성곱 층의 특징맵을 입력으로 받아 크기를 줄이거나 특정 데이터를 강조한다. 대표적인 방법인 **최대 풀링**(max pooling)은 일정한 영역에서 가장 큰 값만 골라낸다. 위 '사진에 필터 적용하기'의 맨 오른쪽 그림이 특징맵에 2×2 최대 풀링을 한 결과이다.
+
+합성곱 층과 풀링 층을 거쳐 추출된 특징값들은 평탄화(flatten)되어 **완전 연결 계층**의 입력이 된다. 완전 연결 계층의 출력층은 클래스마다의 확률을 내고, 확률이 가장 큰 클래스로 예측한다.
+
+</div>
+<FigPool />
+</Split>
+
+CNN EXPLAINER 사이트(교과서 147쪽 링크)에서 실제 합성곱 신경망이 이미지를 분류하는 과정을 살펴보자.
+
+1. 이미지를 하나 고른다.
+2. RGB 채널별 이미지를 확인한다.
+3. 합성곱 층(conv)과 풀링 층(max_pool)을 눌러 특징을 추출하는 과정을 확인한다.
+4. 완전 연결 계층(출력)에서 확률이 가장 큰 클래스로 예측되는 것을 확인한다.
+
+<Ask>
+
+CNN EXPLAINER에서 층을 지날수록 특징맵의 크기와 개수는 어떻게 변하는가? 앞쪽 층과 뒤쪽 층의 특징맵 모양은 어떻게 다른가?
+
+</Ask>
+
+</Sec>
+
+<Sec id="more" title="사전 훈련된 합성곱 신경망과 전이 학습" pages="148쪽" kind="더 알아보기">
+
+<Split>
+<div>
+
+**사전 훈련된 합성곱 신경망**은 대량의 이미지로 미리 훈련해 저장해 둔 모델이다. 이미지 인식 대회(ILSVRC)에서 우승한 VGG16, VGG19, Inception V3, ResNet50 등이 많이 쓰인다. 2015년 대회부터는 컴퓨터의 이미지 인식 오류율이 사람보다 낮아졌다.
+
+**전이 학습**(transfer learning)은 어떤 목적으로 학습된 모델을 다른 작업에 이용하는 것이다. 합성곱 신경망을 처음부터 만들려면 많은 데이터가 필요하지만 현실에서는 큰 데이터셋을 얻기 어렵다. 그래서 사전 훈련된 모델의 전체나 일부를 가져와 내 문제에 맞게 고쳐 쓴다.
+
+1. ImageNet 데이터셋으로 만든 신경망 모델을 불러온다.
+2. 모델의 완전 연결 계층을 제거한다.
+3. 내 데이터셋으로 새 완전 연결 계층을 학습시킨다.
+
+</div>
+<FigTransfer />
+</Split>
+
+텐서스페이스 플레이그라운드(교과서 148쪽 링크)에서 사전 훈련된 합성곱 신경망의 구조를 3D로 살펴볼 수 있다.
+
+</Sec>
+
+<Sec id="p6" title="도로 균열 유무를 분류하는 합성곱 신경망 모델 구현하기" pages="149~153쪽" kind="실습 6">
+
+**문제 상황**: 폭염과 폭우로 아스팔트 도로에 금이 가고 함몰되는 균열이 생기고 있다. 도로 균열은 운전 중에 발견하기 어려워 큰 사고로 이어질 수 있다.
+
+| 단계 | 하는 일 | 코드 |
+|---|---|---|
+| 1. 문제 정의하기 | VGG16 모델로 도로의 균열 유무를 판단한다 | |
+| 2. 데이터 수집 및 전처리하기 | crack.zip(훈련 300장, 테스트 80장)을 불러와 크기를 64×64로 맞추고 픽셀값을 0~1로 바꾼다 | `ImageDataGenerator()` |
+| 3. 신경망 모델 생성하기 | VGG16으로 특징 추출 → 완전 연결 계층 설계 → 환경 설정 → 학습 | `VGG16()`, `Sequential()`, `compile()`, `fit()` |
+| 4. 신경망 모델 평가 및 예측하기 | 테스트 데이터로 평가하고 혼동 행렬로 결과를 확인한다 | `evaluate()`, `predict()` |
+
+<NetDiagram
+  layers={[
+    { label: '입력층', size: 2048, note: 'VGG16 특징' },
+    { label: '은닉층', size: 64, note: 'ReLU' },
+    { label: '출력층', size: 2, note: 'softmax' },
+  ]}
+  outputs={['균열 없음', '균열 있음']}
+  hot={1}
+  caption="64×64 사진이 VGG16의 합성곱 층과 풀링 층(풀링 5번)을 지나면 2×2 크기의 특징맵 512개, 곧 2,048개의 특징값이 된다. 이것이 완전 연결 계층의 입력이다."
+/>
+
+- `include_top=False`: VGG16의 완전 연결 계층을 빼고 특징 추출 부분만 가져온다.
+- `layer.trainable = False`: 미리 학습한 가중치를 바꾸지 않고 그대로 쓴다.
+- 손실 함수는 `categorical_crossentropy`, 최적화 함수는 `adam`을 쓴다.
+
+<Colab file="practice6_crack_student.ipynb" title="실습 6 도로 균열 분류 모델 구현하기" minutes="약 25분">
+
+교과서 실습 6과 같은 순서의 코드가 들어 있다. ①에서 교과서 149쪽 링크의 crack.zip을 올린 뒤 위에서부터 차례로 실행한다. [런타임 유형 변경]에서 T4 GPU를 고르면 학습이 빠르다.
+
+</Colab>
+
+<Ask label="하나 더 해 보기">
+
+은닉층 노드 수와 학습 횟수를 바꿔 보자. 모델이 틀린 사진들(⑨)에는 어떤 공통점이 있는가? 다른 이미지 데이터(예: 뇌종양 사진, 수질 사진)로도 합성곱 신경망 모델을 만들 수 있을까?
+
+</Ask>
+
+</Sec>
+
+<Sec id="orange" title="도로 균열 유무 분류 모델 구현하기" pages="154쪽" kind="오렌지로 해 볼까?">
+
+같은 실습을 오렌지3로 할 수 있다. 오렌지에서 Options > Add-ons...의 **Image Analytics**를 체크해 이미지 위젯을 추가한다. 데이터는 실습 6의 crack.zip을 쓴다.
+
+1. **데이터 불러오기**: Import Images 위젯 두 개로 train 폴더(2개 카테고리, 300장)와 test 폴더(80장)를 불러오고, 이름을 Import Images(train), Import Images(test)로 바꾼다.
+2. **특징 추출하기**: Import Images(train) → Image Embedding을 연결한다. Embedder는 Inception v3, VGG-16 등을 고른다. 인터넷이 안 되면 SqueezeNet을 고른다.
+3. **모델 생성하기**: Image Embedding → Neural Network, Image Embedding → Test and Score를 연결하고 Neural Network → Test and Score를 연결한다. Test and Score에서 분류 정확도(CA)를 확인한다.
+4. **모델 평가하기**: Import Images(test) → Image Embedding(훈련 데이터와 같은 Embedder)을 연결하고, 이 Image Embedding과 Neural Network를 Predictions에 연결해 분류 정확도(CA)를 확인한다.
+
+오렌지의 Image Embedding 위젯이 바로 사전 훈련된 합성곱 신경망으로 특징을 추출하는 역할(전이 학습)을 한다.
+
+</Sec>
+
+<section id="wrap" class="wrap">
+
+## 정리하기
+
+<Record id="u3" prompts={[
+  '컴퓨터 비전 기술(객체 탐지, 세그멘테이션, 자세 추정) 중 하나를 골라 우리 생활에 쓰이는 예를 적어 보자.',
+  '합성곱 층과 풀링 층은 각각 어떤 역할을 하는가?',
+  '실습 6의 테스트 정확도와 혼동 행렬 결과를 적어 보자.',
+  '전이 학습을 쓰면 좋은 점은 무엇인가?',
+]} />
+
+</section>
+
+</Lesson>

@@ -1,0 +1,46 @@
+---
+import './fig.css';
+const top = ['끝점 검출', '전처리', '탐색기', '후처리'];
+const bot = ['끝점 검출', '전처리', '종단 간 모델', '후처리'];
+const x0 = 62, w = 74, gap = 10;
+---
+<figure class="fg">
+  <svg viewBox="0 0 460 250" role="img" aria-label="기존 음성 인식은 끝점 검출, 전처리, 탐색기(음향 모델, 발음 사전, 언어 모델 사용), 후처리를 단계적으로 거치고, 종단 간 방식은 하나의 모델이 한꺼번에 음성을 텍스트로 바꾼다">
+    <defs>
+      <marker id="fas-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#3a4560" /></marker>
+    </defs>
+    <text x="10" y="22" class="tb">단계적인 음성 인식</text>
+    <!-- 파형 -->
+    <path d="M10 60 l4 -10 l4 20 l4 -26 l4 30 l4 -18 l4 10 l4 -6 l4 4 l4 -2" fill="none" stroke="#2563eb" stroke-width="2" />
+    {top.map((t, i) => (
+      <g>
+        <rect x={x0 + i * (w + gap)} y="40" width={w} height="36" rx="6" class={i === 2 ? 'boxb' : 'box'} />
+        <text x={x0 + i * (w + gap) + w / 2} y="63" class="t c">{t}</text>
+        {i < 3 && <line x1={x0 + i * (w + gap) + w + 1} y1="58" x2={x0 + (i + 1) * (w + gap) - 2} y2="58" class="arw" marker-end="url(#fas-a)" />}
+      </g>
+    ))}
+    <text x="440" y="63" class="t e">"안녕"</text>
+    {['음향 모델', '발음 사전', '언어 모델'].map((t, i) => (
+      <g>
+        <line x1={x0 + 2 * (w + gap) + w / 2} y1="76" x2={x0 + 2 * (w + gap) - 40 + i * 60 + 28} y2="96" stroke="#2563eb" />
+        <rect x={x0 + 2 * (w + gap) - 40 + i * 60} y="96" width="56" height="24" rx="5" fill="#fff" stroke="#2563eb" />
+        <text x={x0 + 2 * (w + gap) - 40 + i * 60 + 28} y="112" class="ts c" style="fill:#172038">{t}</text>
+      </g>
+    ))}
+    <text x="10" y="142" class="ts">음향 모델: 어떤 소리가 어떤 음인지 확률로 판단 / 언어 모델: 단어가 이어질 확률 계산</text>
+
+    <line x1="10" y1="156" x2="450" y2="156" stroke="#dde1e8" />
+
+    <text x="10" y="180" class="tb">종단 간(End-to-End) 음성 인식</text>
+    <path d="M10 218 l4 -10 l4 20 l4 -26 l4 30 l4 -18 l4 10 l4 -6 l4 4 l4 -2" fill="none" stroke="#2563eb" stroke-width="2" />
+    {bot.map((t, i) => (
+      <g>
+        <rect x={x0 + i * (w + gap)} y="198" width={w} height="36" rx="6" class={i === 2 ? 'boxh' : 'box'} />
+        <text x={x0 + i * (w + gap) + w / 2} y="221" class={i === 2 ? 'tb c' : 't c'}>{t}</text>
+        {i < 3 && <line x1={x0 + i * (w + gap) + w + 1} y1="216" x2={x0 + (i + 1) * (w + gap) - 2} y2="216" class="arw" marker-end="url(#fas-a)" />}
+      </g>
+    ))}
+    <text x="440" y="221" class="t e">"안녕"</text>
+  </svg>
+  <figcaption>최근에는 하나의 딥러닝 모델이 음성을 한꺼번에 텍스트로 바꾸는 종단 간 방식을 많이 쓴다.</figcaption>
+</figure>

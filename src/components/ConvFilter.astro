@@ -1,0 +1,187 @@
+---
+// 사진에 3×3 필터(커널)를 적용해 특징맵을 만들고, 최대 풀링까지 해 보는 위젯
+---
+<div class="widget cf" data-convfilter>
+  <p class="widget-title">사진에 필터 적용하기</p>
+  <p class="widget-help">필터를 고르면 오른쪽에 특징맵이 나옵니다. 필터의 9개 숫자를 직접 바꿔도 됩니다. 밝은 곳일수록 필터가 찾는 특징이 강하게 나타난 곳입니다.</p>
+
+  <div class="cf-row">
+    <div class="cf-presets" role="group" aria-label="필터 고르기">
+      <button type="button" class="ghost" data-k="id" aria-pressed="false">원본 그대로</button>
+      <button type="button" class="ghost" data-k="edge" aria-pressed="true">윤곽선</button>
+      <button type="button" class="ghost" data-k="v" aria-pressed="false">세로선</button>
+      <button type="button" class="ghost" data-k="h" aria-pressed="false">가로선</button>
+      <button type="button" class="ghost" data-k="blur" aria-pressed="false">흐리게</button>
+      <button type="button" class="ghost" data-k="sharp" aria-pressed="false">선명하게</button>
+    </div>
+    <label class="cf-upload ghost">
+      내 사진 넣기
+      <input type="file" accept="image/*" data-file class="visually-hidden" />
+    </label>
+  </div>
+
+  <div class="cf-grid">
+    <figure>
+      <canvas width="128" height="128" data-src aria-label="입력 이미지"></canvas>
+      <figcaption>입력 (128×128)</figcaption>
+    </figure>
+    <div class="cf-kwrap">
+      <div class="cf-k" data-kgrid></div>
+      <p class="cf-sum" data-sum></p>
+    </div>
+    <figure>
+      <canvas width="126" height="126" data-dst aria-label="특징맵"></canvas>
+      <figcaption>특징맵 (126×126)</figcaption>
+    </figure>
+    <figure>
+      <canvas width="63" height="63" data-pool aria-label="최대 풀링 결과"></canvas>
+      <figcaption>최대 풀링 2×2 (63×63)</figcaption>
+    </figure>
+  </div>
+  <p class="cf-note">특징맵이 입력보다 2칸 작은 이유: 3×3 필터가 이미지 밖으로 나갈 수 없어서 가장자리 한 줄씩은 계산하지 않습니다. 사진은 이 기기에서만 처리되고 어디에도 올라가지 않습니다.</p>
+</div>
+
+<style>
+  .cf-row { display: flex; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .cf-presets { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .cf-upload { cursor: pointer; display: inline-flex; align-items: center; }
+  .cf-upload:focus-within { outline: 3px solid var(--fire); }
+  .cf-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+  .cf-grid figure { margin: 0; }
+  .cf-grid canvas { width: 100%; aspect-ratio: 1; image-rendering: pixelated; border-radius: 6px; border: 1px solid var(--line); background: #000; display: block; }
+  .cf-grid figcaption { font-size: 0.8rem; color: var(--muted); margin-top: 0.3rem; text-align: center; }
+  .cf-kwrap { align-self: center; }
+  .cf-k { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
+  .cf-k :global(input) {
+    width: 100%; min-width: 0; text-align: center; font: inherit; font-weight: 700; font-size: 0.95rem;
+    border: 1.5px solid var(--fire); background: var(--fire-soft); border-radius: 4px; padding: 0.45rem 0; color: var(--ink);
+  }
+  .cf-k :global(input.neg) { color: var(--neg); }
+  .cf-sum { font-size: 0.8rem; color: var(--muted); text-align: center; margin: 0.4rem 0 0; }
+  .cf-note { font-size: 0.85rem; color: var(--muted); margin: 0.9rem 0 0; }
+  @media (max-width: 720px) { .cf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+
+<script>
+  const K: Record<string, number[]> = {
+    id: [0, 0, 0, 0, 1, 0, 0, 0, 0],
+    edge: [-1, -1, -1, -1, 8, -1, -1, -1, -1],
+    v: [-1, 0, 1, -2, 0, 2, -1, 0, 1],
+    h: [-1, -2, -1, 0, 0, 0, 1, 2, 1],
+    blur: [1, 2, 1, 2, 4, 2, 1, 2, 1],
+    sharp: [0, -1, 0, -1, 5, -1, 0, -1, 0],
+  };
+  const N = 128;
+
+  function sampleScene(ctx: CanvasRenderingContext2D) {
+    // 기본 그림: 집과 해, 나무
+    ctx.fillStyle = '#8fb8e8'; ctx.fillRect(0, 0, N, N);
+    ctx.fillStyle = '#6aa457'; ctx.fillRect(0, 96, N, 32);
+    ctx.fillStyle = '#f2c14e'; ctx.beginPath(); ctx.arc(102, 24, 13, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#e9e1d0'; ctx.fillRect(24, 58, 52, 42);
+    ctx.fillStyle = '#b5523b'; ctx.beginPath(); ctx.moveTo(16, 60); ctx.lineTo(50, 30); ctx.lineTo(84, 60); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#4b3b2a'; ctx.fillRect(43, 74, 14, 26);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(29, 66, 10, 10); ctx.fillRect(61, 66, 10, 10);
+    ctx.strokeStyle = '#4b3b2a'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(34, 66); ctx.lineTo(34, 76); ctx.moveTo(29, 71); ctx.lineTo(39, 71); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(66, 66); ctx.lineTo(66, 76); ctx.moveTo(61, 71); ctx.lineTo(71, 71); ctx.stroke();
+    ctx.fillStyle = '#6b4a2b'; ctx.fillRect(100, 70, 6, 28);
+    ctx.fillStyle = '#3f7d3a'; ctx.beginPath(); ctx.arc(103, 62, 14, 0, Math.PI * 2); ctx.fill();
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-convfilter]').forEach((root) => {
+    const src = root.querySelector<HTMLCanvasElement>('[data-src]')!;
+    const dst = root.querySelector<HTMLCanvasElement>('[data-dst]')!;
+    const pool = root.querySelector<HTMLCanvasElement>('[data-pool]')!;
+    const sctx = src.getContext('2d', { willReadFrequently: true })!;
+    const kgrid = root.querySelector<HTMLElement>('[data-kgrid]')!;
+    const sumEl = root.querySelector<HTMLElement>('[data-sum]')!;
+    let kernel = K.edge.slice();
+    let gray = new Float32Array(N * N);
+
+    const inputs = kernel.map((_, i) => {
+      const inp = document.createElement('input');
+      inp.type = 'number'; inp.step = '1'; inp.min = '-9'; inp.max = '9';
+      inp.setAttribute('aria-label', `필터 ${Math.floor(i / 3) + 1}행 ${(i % 3) + 1}열 가중치`);
+      inp.addEventListener('input', () => {
+        const v = Number(inp.value);
+        if (Number.isFinite(v)) { kernel[i] = v; mark(null); run(); }
+      });
+      kgrid.appendChild(inp);
+      return inp;
+    });
+
+    function mark(key: string | null) {
+      root.querySelectorAll('[data-k]').forEach((b) => b.setAttribute('aria-pressed', String((b as HTMLElement).dataset.k === key)));
+    }
+
+    function readGray() {
+      const d = sctx.getImageData(0, 0, N, N).data;
+      gray = new Float32Array(N * N);
+      for (let i = 0; i < N * N; i++) gray[i] = (0.299 * d[i * 4] + 0.587 * d[i * 4 + 1] + 0.114 * d[i * 4 + 2]) / 255;
+    }
+
+    function run() {
+      inputs.forEach((inp, i) => { if (document.activeElement !== inp) inp.value = String(kernel[i]); inp.classList.toggle('neg', kernel[i] < 0); });
+      const sum = kernel.reduce((a, b) => a + b, 0);
+      sumEl.textContent = `가중치 합: ${sum}`;
+      const M = N - 2;
+      const out = new Float32Array(M * M);
+      let lo = Infinity, hi = -Infinity;
+      for (let y = 0; y < M; y++) for (let x = 0; x < M; x++) {
+        let s = 0;
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) s += gray[(y + i) * N + x + j] * kernel[i * 3 + j];
+        out[y * M + x] = s;
+        if (s < lo) lo = s; if (s > hi) hi = s;
+      }
+      // 가중치 합이 0이면(윤곽선류) 절댓값을, 아니면 합으로 나눈 값을 밝기로 쓴다
+      const show = new Float32Array(M * M);
+      if (sum === 0) {
+        const m = Math.max(Math.abs(lo), Math.abs(hi)) || 1;
+        for (let i = 0; i < out.length; i++) show[i] = Math.min(1, Math.abs(out[i]) / m * 1.6);
+      } else {
+        for (let i = 0; i < out.length; i++) show[i] = Math.max(0, Math.min(1, out[i] / sum));
+      }
+      paint(dst, show, M);
+      const P = Math.floor(M / 2);
+      const pooled = new Float32Array(P * P);
+      for (let y = 0; y < P; y++) for (let x = 0; x < P; x++) {
+        pooled[y * P + x] = Math.max(show[(2 * y) * M + 2 * x], show[(2 * y) * M + 2 * x + 1], show[(2 * y + 1) * M + 2 * x], show[(2 * y + 1) * M + 2 * x + 1]);
+      }
+      paint(pool, pooled, P);
+    }
+
+    function paint(cv: HTMLCanvasElement, v: Float32Array, n: number) {
+      cv.width = n; cv.height = n;
+      const ctx = cv.getContext('2d')!;
+      const im = ctx.createImageData(n, n);
+      for (let i = 0; i < n * n; i++) {
+        const g = Math.round(v[i] * 255);
+        im.data[i * 4] = g; im.data[i * 4 + 1] = g; im.data[i * 4 + 2] = g; im.data[i * 4 + 3] = 255;
+      }
+      ctx.putImageData(im, 0, 0);
+    }
+
+    root.querySelectorAll<HTMLButtonElement>('[data-k]').forEach((b) => b.addEventListener('click', () => {
+      kernel = K[b.dataset.k!].slice(); mark(b.dataset.k!); run();
+    }));
+
+    root.querySelector<HTMLInputElement>('[data-file]')!.addEventListener('change', (e) => {
+      const f = (e.target as HTMLInputElement).files?.[0];
+      if (!f) return;
+      const url = URL.createObjectURL(f);
+      const im = new Image();
+      im.onload = () => {
+        const s = Math.min(im.width, im.height);
+        sctx.drawImage(im, (im.width - s) / 2, (im.height - s) / 2, s, s, 0, 0, N, N);
+        URL.revokeObjectURL(url);
+        readGray(); run();
+      };
+      im.src = url;
+    });
+
+    sampleScene(sctx);
+    readGray();
+    run();
+  });
+</script>

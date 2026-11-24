@@ -1,0 +1,41 @@
+---
+import './fig.css';
+const words = ['우리는', '급식을', '정말', '좋아한다'];
+const W = 92, X = 40;
+---
+<figure class="fg">
+  <svg viewBox="0 0 460 260" role="img" aria-label="BERT는 문장 가운데 빈칸의 앞뒤 단어를 모두 보고 빈칸 단어를 예측하며 학습하고, GPT는 앞 단어들만 보고 다음 단어를 예측하며 학습한다">
+    <defs>
+      <marker id="fbg-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#2563eb" /></marker>
+      <marker id="fbg-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#e0464e" /></marker>
+    </defs>
+    <text x="10" y="22" class="tb">BERT: 빈칸 채우기 (자연어 이해)</text>
+    {words.map((w, i) => (
+      <g>
+        <rect x={X + i * W} y="44" width={W - 10} height="32" rx="6" class={i === 2 ? 'boxh' : 'box'} />
+        <text x={X + i * W + (W - 10) / 2} y="65" class="t c">{i === 2 ? '?' : w}</text>
+      </g>
+    ))}
+    <path d={`M${X + 41} 80 Q${X + 2 * W - 30} 112 ${X + 2 * W + 36} 82`} fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#fbg-b)" />
+    <path d={`M${X + 3 * W + 41} 80 Q${X + 3 * W - 20} 112 ${X + 2 * W + 46} 82`} fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#fbg-b)" />
+    <text x="230" y="124" class="ts c">앞과 뒤를 모두 보고 '정말'을 맞히도록 훈련한다</text>
+
+    <line x1="10" y1="140" x2="450" y2="140" stroke="#dde1e8" />
+
+    <text x="10" y="164" class="tb">GPT: 다음 단어 예측 (자연어 생성)</text>
+    {[1, 2, 3].map((n, r) => (
+      <g>
+        {words.slice(0, n).map((w, i) => (
+          <g>
+            <rect x={X + i * W} y={176 + r * 26} width={W - 10} height="22" rx="5" class="box" />
+            <text x={X + i * W + (W - 10) / 2} y={191 + r * 26} class="ts c" style="fill:#172038">{w}</text>
+          </g>
+        ))}
+        <line x1={X + n * W - 6} y1={187 + r * 26} x2={X + n * W + 10} y2={187 + r * 26} stroke="#e0464e" stroke-width="2" marker-end="url(#fbg-r)" />
+        <rect x={X + n * W + 14} y={176 + r * 26} width={W - 24} height="22" rx="5" class="boxh" />
+        <text x={X + n * W + 14 + (W - 24) / 2} y={191 + r * 26} class="ts c" style="fill:#172038;font-weight:700">{words[n]}</text>
+      </g>
+    ))}
+  </svg>
+  <figcaption>BERT는 빈칸의 앞뒤를 모두 보며 문장의 뜻을 이해하도록, GPT는 앞 단어들로 다음 단어를 맞히며 문장을 만들도록 훈련한다.</figcaption>
+</figure>
