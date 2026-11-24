@@ -1,0 +1,45 @@
+---
+import { colabUrl } from '../config';
+interface Props {
+  file: string;      // public/notebooks 안의 파일 이름
+  title: string;
+  minutes?: string;
+}
+const { file, title, minutes } = Astro.props;
+const url = colabUrl(file);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<div class="colab widget">
+  <div class="colab-head">
+    <svg class="colab-logo" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
+      <path fill="#f9ab00" d="M4.54 9.46 2.19 7.1a6.93 6.93 0 0 0 0 9.8l2.36-2.36a3.6 3.6 0 0 1 0-5.08z"/>
+      <path fill="#f9ab00" d="M2.19 7.1 4.54 9.46a3.6 3.6 0 0 1 5.08 0l1.71-2.89a6.93 6.93 0 0 0-9.14.53z"/>
+      <path fill="#e8710a" d="m2.19 16.9 2.36-2.36a3.6 3.6 0 0 0 5.08 0l1.71 2.89a6.93 6.93 0 0 1-9.15-.53z"/>
+      <path fill="#f9ab00" d="m12 7.1-2.36 2.36a3.6 3.6 0 0 1 0 5.08L12 16.9a6.93 6.93 0 0 0 0-9.8z"/>
+      <path fill="#f9ab00" d="M21.81 7.1 19.46 9.46a3.6 3.6 0 0 0-5.08 0L12.67 6.57a6.93 6.93 0 0 1 9.14.53z"/>
+      <path fill="#e8710a" d="m21.81 16.9-2.35-2.36a3.6 3.6 0 0 1-5.08 0l-1.71 2.89a6.93 6.93 0 0 0 9.14-.53z"/>
+      <path fill="#f9ab00" d="M19.46 9.46a3.6 3.6 0 0 1 0 5.08l2.35 2.36a6.93 6.93 0 0 0 0-9.8z"/>
+    </svg>
+    <div>
+      <p class="widget-title">{title}</p>
+      <p class="colab-meta">구글 코랩{minutes ? `에서 ${minutes}` : ''}. 구글 계정으로 로그인한 뒤 엽니다.</p>
+    </div>
+  </div>
+  <div class="colab-body"><slot /></div>
+  <div class="colab-actions">
+    {url && <a class="btn" href={url} target="_blank" rel="noopener">코랩에서 열기</a>}
+    <a class:list={['btn', { ghost: !!url }]} href={`${base}/notebooks/${file}`} download>노트북 파일 내려받기</a>
+  </div>
+  {!url && <p class="colab-note">코랩 바로 열기 버튼은 선생님이 사이트 설정(src/config.ts)에 깃허브 저장소를 넣으면 나타납니다. 지금은 파일을 내려받아 코랩에서 [파일 → 노트 업로드]로 엽니다.</p>}
+</div>
+
+<style>
+  .colab { border-left: 4px solid #f9ab00; }
+  .colab-head { display: flex; gap: 0.8rem; align-items: flex-start; }
+  .colab-logo { flex: none; margin-top: 0.15rem; }
+  .colab-meta { color: var(--muted); font-size: 0.9rem; margin: 0; }
+  .colab-body { margin-top: 0.8rem; }
+  .colab-body :global(ol), .colab-body :global(ul) { margin-bottom: 0.6rem; }
+  .colab-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.6rem; }
+  .colab-note { font-size: 0.85rem; color: var(--muted); margin: 0.7rem 0 0; }
+</style>

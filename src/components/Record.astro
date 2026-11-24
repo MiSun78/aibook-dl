@@ -1,0 +1,61 @@
+---
+// 학생 기록 칸. 입력 내용은 이 기기의 브라우저에만 저장된다.
+import { SITE } from '../config';
+interface Props {
+  id: string;
+  prompts: string[];
+  title?: string;
+}
+const { id, prompts, title = '나의 기록' } = Astro.props;
+---
+<div class="record widget" data-record={id}>
+  <p class="widget-title">{title}</p>
+  <p class="widget-help">적은 내용은 이 기기에만 저장됩니다. 제출할 때는 복사해서 붙여 넣으세요.</p>
+  {prompts.map((p, i) => (
+    <label class="rec-item">
+      <span class="rec-q">{p}</span>
+      <textarea rows="3" data-key={`${id}-${i}`} data-q={p}></textarea>
+    </label>
+  ))}
+  <div class="rec-actions">
+    <button type="button" class="ghost" data-copy>기록 복사하기</button>
+    {SITE.recordFormUrl && <a class="btn" href={SITE.recordFormUrl} target="_blank" rel="noopener">구글 폼에 제출하기</a>}
+    <span class="rec-status" role="status" aria-live="polite"></span>
+  </div>
+</div>
+
+<style>
+  .rec-item { display: block; margin-bottom: 0.9rem; }
+  .rec-q { display: block; font-weight: 650; margin-bottom: 0.3rem; }
+  textarea {
+    width: 100%; font: inherit; font-size: 0.95rem; line-height: 1.6;
+    border: 1.5px solid var(--line-strong); border-radius: var(--radius-s);
+    padding: 0.5rem 0.7rem; resize: vertical; background: #fff; color: var(--ink);
+  }
+  textarea:focus { border-color: var(--ink); outline: none; box-shadow: 0 0 0 3px var(--fire-soft); }
+  .rec-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+  .rec-status { color: var(--ok); font-size: 0.9rem; font-weight: 650; }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-record]').forEach((box) => {
+    const areas = box.querySelectorAll<HTMLTextAreaElement>('textarea[data-key]');
+    const status = box.querySelector<HTMLElement>('.rec-status')!;
+    areas.forEach((a) => {
+      try { a.value = localStorage.getItem('aibook-rec-' + a.dataset.key) || ''; } catch {}
+      a.addEventListener('input', () => {
+        try { localStorage.setItem('aibook-rec-' + a.dataset.key, a.value); } catch {}
+      });
+    });
+    box.querySelector('[data-copy]')?.addEventListener('click', async () => {
+      const text = Array.from(areas).map((a) => `■ ${a.dataset.q}\n${a.value.trim() || '(비어 있음)'}`).join('\n\n');
+      try {
+        await navigator.clipboard.writeText(text);
+        status.textContent = '복사했습니다.';
+      } catch {
+        status.textContent = '복사할 수 없습니다. 글을 직접 선택해 복사하세요.';
+      }
+      setTimeout(() => (status.textContent = ''), 2500);
+    });
+  });
+</script>

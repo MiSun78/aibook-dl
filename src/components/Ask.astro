@@ -1,0 +1,8 @@
+---
+interface Props { label?: string; }
+const { label = '생각해 보기' } = Astro.props;
+---
+<div class="ask">
+  <p class="ask-label">{label}</p>
+  <slot />
+</div>

@@ -1,0 +1,161 @@
+---
+// 숫자 그리기 판: 손으로 쓴 숫자를 신경망이 맞힌다.
+interface Props { variant?: 'hero' | 'lab'; }
+const { variant = 'lab' } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<div class:list={['dp', `dp-${variant}`, { widget: variant === 'lab' }]} data-drawpad data-base={base} data-variant={variant}>
+  {variant === 'lab' && <p class="widget-title">숫자 그리기 판</p>}
+  {variant === 'lab' && <p class="widget-help">0부터 9 중 하나를 크게 쓰세요. 손을 떼면 신경망이 답합니다.</p>}
+  <div class="dp-grid">
+    <div class="dp-pad">
+      <canvas class="dp-canvas" width="280" height="280" aria-label="숫자를 그리는 판. 마우스나 손가락으로 숫자를 쓰세요."></canvas>
+      <div class="dp-pad-actions">
+        <button type="button" class="ghost" data-clear>지우기</button>
+        {variant === 'lab' && (
+          <label class="dp-check"><input type="checkbox" data-center checked /> 자동 가운데 맞춤</label>
+        )}
+      </div>
+    </div>
+
+    {variant === 'lab' && (
+      <div class="dp-see">
+        <p class="dp-cap">신경망이 보는 그림 (28×28)</p>
+        <canvas class="dp-mini" width="168" height="168" aria-label="신경망에 들어가는 28×28 그림"></canvas>
+        <label class="dp-check"><input type="checkbox" data-nums /> 숫자로 보기</label>
+        <p class="dp-note" data-numnote hidden>칸마다 밝기를 0~9 단계로 적었다. 실제 입력값은 0~1 사이의 수 784개다.</p>
+      </div>
+    )}
+
+    <div class="dp-answer" aria-live="polite">
+      <p class="dp-cap">AI의 답</p>
+      <p class="dp-digit" data-digit>?</p>
+      <p class="dp-conf" data-conf>숫자를 써 보세요</p>
+      <ol class="dp-bars" data-bars start="0"></ol>
+    </div>
+  </div>
+  <p class="dp-err" data-err hidden></p>
+</div>
+
+<style>
+  .dp-grid { display: grid; grid-template-columns: 280px auto 1fr; gap: 1.4rem; align-items: start; }
+  .dp-hero .dp-grid { grid-template-columns: 280px 1fr; }
+  .dp-canvas {
+    width: 280px; height: 280px; display: block; touch-action: none; cursor: crosshair;
+    background: #fff; border: 2px solid var(--ink); border-radius: var(--radius-m);
+  }
+  .dp-pad-actions { display: flex; align-items: center; gap: 0.8rem; margin-top: 0.6rem; flex-wrap: wrap; }
+  .dp-check { font-size: 0.9rem; display: inline-flex; gap: 0.35rem; align-items: center; cursor: pointer; }
+  .dp-check input { accent-color: var(--ink); width: 1rem; height: 1rem; }
+  .dp-cap { font-size: 0.88rem; font-weight: 650; color: var(--muted); margin: 0 0 0.3rem; }
+  .dp-mini { width: 168px; height: 168px; image-rendering: pixelated; border-radius: var(--radius-s); background: #000; display: block; margin-bottom: 0.4rem; }
+  .dp-note { font-size: 0.82rem; color: var(--muted); max-width: 12rem; margin: 0.3rem 0 0; }
+  .dp-digit { font-size: 5.5rem; font-weight: 850; line-height: 1; margin: 0; font-variant-numeric: tabular-nums; }
+  .dp-conf { font-weight: 650; color: var(--ink-2); margin: 0.2rem 0 0.8rem; }
+  .dp-bars { list-style: none; padding: 0; margin: 0; display: grid; gap: 3px; }
+  .dp-bars :global(li) { display: grid; grid-template-columns: 1.2rem 1fr 3rem; align-items: center; gap: 0.5rem; font-size: 0.85rem; margin: 0; line-height: 1.5; font-variant-numeric: tabular-nums; }
+  .dp-bars :global(.bar) { height: 10px; background: var(--paper); border-radius: 3px; overflow: hidden; display: block; }
+  .dp-bars :global(.fill) { height: 100%; background: var(--line-strong); display: block; }
+  .dp-bars :global(li.top .fill) { background: var(--fire); }
+  .dp-bars :global(li.top) { font-weight: 800; }
+  .dp-bars :global(.pct) { text-align: right; color: var(--muted); }
+  .dp-hero .dp-bars { max-width: 20rem; }
+  .dp-err { color: var(--neg); font-weight: 650; margin-top: 0.8rem; }
+  @media (max-width: 860px) {
+    .dp-grid, .dp-hero .dp-grid { grid-template-columns: 1fr; }
+    .dp-canvas { margin: 0 auto; }
+  }
+</style>
+
+<script>
+  import { loadModel, predict, toMnist } from '../scripts/mnist';
+
+  document.querySelectorAll<HTMLElement>('[data-drawpad]').forEach((root) => {
+    const base = root.dataset.base || '';
+    const canvas = root.querySelector<HTMLCanvasElement>('.dp-canvas')!;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+    const mini = root.querySelector<HTMLCanvasElement>('.dp-mini');
+    const centerBox = root.querySelector<HTMLInputElement>('[data-center]');
+    const numsBox = root.querySelector<HTMLInputElement>('[data-nums]');
+    const bars = root.querySelector<HTMLOListElement>('[data-bars]')!;
+    let drawing = false, last: [number, number] | null = null, pending = 0, lastX: Float32Array | null = null;
+
+    function clear() {
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      root.querySelector('[data-digit]')!.textContent = '?';
+      root.querySelector('[data-conf]')!.textContent = '숫자를 써 보세요';
+      bars.innerHTML = '';
+      lastX = null;
+      if (mini) { const m = mini.getContext('2d')!; m.fillStyle = '#000'; m.fillRect(0, 0, mini.width, mini.height); }
+    }
+    clear();
+
+    const pos = (e: PointerEvent): [number, number] => {
+      const r = canvas.getBoundingClientRect();
+      return [((e.clientX - r.left) / r.width) * canvas.width, ((e.clientY - r.top) / r.height) * canvas.height];
+    };
+    function stroke(a: [number, number], b: [number, number]) {
+      ctx.strokeStyle = '#000'; ctx.lineWidth = 18; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+    }
+    canvas.addEventListener('pointerdown', (e) => {
+      drawing = true; canvas.setPointerCapture(e.pointerId);
+      last = pos(e); stroke(last, last);
+    });
+    canvas.addEventListener('pointermove', (e) => {
+      if (!drawing || !last) return;
+      const p = pos(e); stroke(last, p); last = p;
+      if (!pending) pending = window.setTimeout(() => { pending = 0; run(); }, 120);
+    });
+    const end = () => { if (drawing) { drawing = false; last = null; run(); } };
+    canvas.addEventListener('pointerup', end);
+    canvas.addEventListener('pointercancel', end);
+    root.querySelector('[data-clear]')!.addEventListener('click', clear);
+    centerBox?.addEventListener('change', run);
+    numsBox?.addEventListener('change', () => {
+      root.querySelector<HTMLElement>('[data-numnote]')!.hidden = !numsBox.checked;
+      if (lastX) drawMini(lastX);
+    });
+
+    function drawMini(x: Float32Array) {
+      if (!mini) return;
+      const m = mini.getContext('2d')!;
+      const c = mini.width / 28;
+      for (let i = 0; i < 784; i++) {
+        const v = Math.round(x[i] * 255);
+        m.fillStyle = `rgb(${v},${v},${v})`;
+        m.fillRect((i % 28) * c, Math.floor(i / 28) * c, c, c);
+      }
+      if (numsBox?.checked) {
+        m.font = `${Math.floor(c * 0.85)}px sans-serif`;
+        m.textAlign = 'center'; m.textBaseline = 'middle';
+        for (let i = 0; i < 784; i++) {
+          const lv = Math.round(x[i] * 9);
+          m.fillStyle = x[i] > 0.5 ? '#000' : '#8a93a6';
+          m.fillText(String(lv), (i % 28) * c + c / 2, Math.floor(i / 28) * c + c / 2 + 0.5);
+        }
+      }
+    }
+
+    async function run() {
+      const x = toMnist(canvas, centerBox ? centerBox.checked : true);
+      if (!x) return;
+      lastX = x;
+      drawMini(x);
+      try {
+        const model = await loadModel(base);
+        const p = predict(model, x);
+        const best = p.indexOf(Math.max(...p));
+        root.querySelector('[data-digit]')!.textContent = String(best);
+        root.querySelector('[data-conf]')!.textContent = `확신 ${Math.round(p[best] * 100)}%`;
+        bars.innerHTML = p.map((v, d) =>
+          `<li class="${d === best ? 'top' : ''}"><span>${d}</span><span class="bar"><span class="fill" style="width:${(v * 100).toFixed(1)}%"></span></span><span class="pct">${(v * 100).toFixed(1)}%</span></li>`
+        ).join('');
+      } catch (err) {
+        const el = root.querySelector<HTMLElement>('[data-err]')!;
+        el.hidden = false;
+        el.textContent = '신경망 모델을 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 새로고침하세요.';
+      }
+    }
+  });
+</script>

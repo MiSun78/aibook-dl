@@ -1,0 +1,211 @@
+---
+// 퍼셉트론 위젯: 가중치·편향을 움직여 AND, OR, XOR를 풀어 본다.
+---
+<div class="widget pc" data-perceptron>
+  <p class="widget-title">퍼셉트론 조종하기</p>
+  <p class="widget-help">슬라이더로 가중치와 편향을 바꿔 목표 표의 네 칸을 모두 맞혀 보세요. 오른쪽 그림에서 호박색 영역은 출력이 1이 되는 곳입니다.</p>
+
+  <div class="pc-targets" role="radiogroup" aria-label="목표 문제">
+    <button type="button" class="ghost" data-target="AND" aria-pressed="true">AND</button>
+    <button type="button" class="ghost" data-target="OR" aria-pressed="false">OR</button>
+    <button type="button" class="ghost" data-target="XOR" aria-pressed="false">XOR</button>
+  </div>
+
+  <div class="pc-grid">
+    <svg class="pc-neuron" viewBox="0 0 300 190" role="img" aria-label="퍼셉트론 구조: 입력 두 개에 가중치를 곱해 더하고 편향을 더한 뒤 계단 함수로 0 또는 1을 출력">
+      <line data-edge="w1" x1="46" y1="52" x2="168" y2="95" />
+      <line data-edge="w2" x1="46" y1="138" x2="168" y2="95" />
+      <line data-edge="b" x1="168" y1="22" x2="168" y2="70" />
+      <line class="pc-out-line" x1="194" y1="95" x2="262" y2="95" />
+      <circle cx="36" cy="52" r="20" class="pc-in" />
+      <text x="36" y="57" class="pc-t">x₁</text>
+      <circle cx="36" cy="138" r="20" class="pc-in" />
+      <text x="36" y="143" class="pc-t">x₂</text>
+      <text x="168" y="16" class="pc-s">편향 b</text>
+      <circle cx="168" cy="95" r="26" class="pc-sum" data-sum />
+      <text x="168" y="101" class="pc-t">Σ</text>
+      <circle cx="276" cy="95" r="16" class="pc-o" data-outnode />
+      <text x="276" y="100" class="pc-t pc-oval">y</text>
+      <text data-wlabel="w1" x="100" y="58" class="pc-s">w₁</text>
+      <text data-wlabel="w2" x="100" y="138" class="pc-s">w₂</text>
+      <text x="228" y="84" class="pc-s">계단</text>
+    </svg>
+
+    <div class="pc-sliders">
+      <label><span>가중치 w₁ <output data-out="w1"></output></span>
+        <input type="range" min="-2" max="2" step="0.1" value="0.3" data-param="w1" /></label>
+      <label><span>가중치 w₂ <output data-out="w2"></output></span>
+        <input type="range" min="-2" max="2" step="0.1" value="-0.6" data-param="w2" /></label>
+      <label><span>편향 b <output data-out="b"></output></span>
+        <input type="range" min="-3" max="3" step="0.1" value="0.1" data-param="b" /></label>
+      <p class="pc-rule">출력 = 1, 만약 <span class="nowrap">w₁x₁ + w₂x₂ + b ≥ 0</span><br />그렇지 않으면 0</p>
+    </div>
+
+    <div>
+      <canvas class="pc-plot" width="240" height="240" aria-label="입력 네 점과 결정 경계선"></canvas>
+      <p class="pc-legend">● 목표가 1인 점, ○ 목표가 0인 점<br />빨간 테두리는 퍼셉트론이 틀린 점</p>
+    </div>
+  </div>
+
+  <table class="pc-table">
+    <thead><tr><th>x₁</th><th>x₂</th><th>가중합 w₁x₁ + w₂x₂ + b</th><th>출력</th><th>목표</th><th></th></tr></thead>
+    <tbody data-rows></tbody>
+  </table>
+
+  <p class="pc-score" role="status" aria-live="polite" data-score></p>
+  <div class="pc-why" data-why hidden>
+    <button type="button" class="ghost" data-why-btn>정말 안 될까?</button>
+    <p data-why-text hidden>XOR는 (0,1)과 (1,0)만 1이다. 그림에서 1인 두 점은 대각선으로 마주 보고, 0인 두 점도 반대쪽 대각선에 있다. 직선 하나로는 이 둘을 갈라놓을 수 없다. 이것이 퍼셉트론 하나의 한계이고, 신경망이 층을 쌓게 된 이유다.</p>
+  </div>
+</div>
+
+<style>
+  .pc-targets { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+  .pc-targets button[aria-pressed='true'] { background: var(--ink); color: #fff; }
+  .pc-grid { display: grid; grid-template-columns: minmax(220px, 1.1fr) minmax(200px, 1fr) 240px; gap: 1.2rem; align-items: center; }
+  .pc-neuron { width: 100%; height: auto; }
+  .pc-neuron line { stroke-linecap: round; }
+  .pc-out-line { stroke: var(--ink); stroke-width: 2; }
+  .pc-in { fill: #fff; stroke: var(--ink); stroke-width: 2; }
+  .pc-sum { fill: #fff; stroke: var(--ink); stroke-width: 2.5; }
+  .pc-o { fill: #fff; stroke: var(--ink); stroke-width: 2; transition: fill 0.15s; }
+  
+  .pc-t { font-size: 16px; font-weight: 700; text-anchor: middle; fill: var(--ink); font-family: var(--font); }
+  .pc-s { font-size: 12px; text-anchor: middle; fill: var(--muted); font-family: var(--font); }
+  .pc-sliders label { display: block; margin-bottom: 0.7rem; }
+  .pc-sliders label span { display: flex; justify-content: space-between; font-weight: 650; font-size: 0.93rem; }
+  .pc-sliders output { font-variant-numeric: tabular-nums; font-weight: 750; }
+  .pc-rule { font-size: 0.88rem; color: var(--ink-2); background: var(--paper); border-radius: var(--radius-s); padding: 0.5rem 0.7rem; margin: 0; }
+  .nowrap { white-space: nowrap; }
+  .pc-legend { font-size: 0.8rem; color: var(--muted); margin: 0.35rem 0 0; line-height: 1.45; }
+  .pc-plot { width: 240px; height: 240px; border-radius: var(--radius-s); border: 1px solid var(--line); }
+  .pc-table { margin-top: 1.2rem; font-variant-numeric: tabular-nums; }
+  .pc-table :global(td:nth-child(6)) { font-weight: 800; }
+  .pc-table :global(.hit) { color: var(--ok); }
+  .pc-table :global(.miss) { color: var(--neg); }
+  .pc-score { font-weight: 750; font-size: 1.05rem; margin: 0.4rem 0 0.6rem; }
+  .pc-score.done { color: var(--ok); }
+  .pc-why p { margin-top: 0.7rem; background: var(--paper); padding: 0.7rem 0.9rem; border-radius: var(--radius-s); }
+  @media (max-width: 860px) {
+    .pc-grid { grid-template-columns: 1fr; }
+    .pc-plot { margin: 0 auto; }
+  }
+</style>
+
+<script>
+  const TARGETS: Record<string, number[]> = {
+    AND: [0, 0, 0, 1],
+    OR: [0, 1, 1, 1],
+    XOR: [0, 1, 1, 0],
+  };
+  const PTS = [[0, 0], [0, 1], [1, 0], [1, 1]];
+
+  document.querySelectorAll<HTMLElement>('[data-perceptron]').forEach((root) => {
+    let target = 'AND';
+    const inputs = root.querySelectorAll<HTMLInputElement>('[data-param]');
+    const canvas = root.querySelector<HTMLCanvasElement>('canvas')!;
+    const ctx = canvas.getContext('2d')!;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = 240 * dpr; canvas.height = 240 * dpr; ctx.scale(dpr, dpr);
+    const css = getComputedStyle(document.documentElement);
+    const C = {
+      ink: css.getPropertyValue('--ink').trim(),
+      pos: css.getPropertyValue('--pos').trim(),
+      neg: css.getPropertyValue('--neg').trim(),
+      fire: css.getPropertyValue('--fire').trim(),
+      fireSoft: css.getPropertyValue('--fire-soft').trim(),
+      line: css.getPropertyValue('--line').trim(),
+    };
+    let solvedXor3 = false;
+
+    const get = () => {
+      const v: Record<string, number> = {};
+      inputs.forEach((i) => (v[i.dataset.param!] = parseFloat(i.value)));
+      return v as { w1: number; w2: number; b: number };
+    };
+    // 그림 좌표: 입력 -0.4 ~ 1.4
+    const S = 240, lo = -0.4, hi = 1.4;
+    const px = (x: number) => ((x - lo) / (hi - lo)) * S;
+    const py = (y: number) => S - ((y - lo) / (hi - lo)) * S;
+
+    function drawPlot(w1: number, w2: number, b: number, outs: number[], tgt: number[]) {
+      ctx.clearRect(0, 0, S, S);
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, S, S);
+      // 출력 1 영역
+      const step = 4;
+      ctx.fillStyle = C.fireSoft;
+      for (let gx = 0; gx < S; gx += step) {
+        for (let gy = 0; gy < S; gy += step) {
+          const x = lo + ((gx + step / 2) / S) * (hi - lo);
+          const y = lo + ((S - gy - step / 2) / S) * (hi - lo);
+          if (w1 * x + w2 * y + b >= 0) ctx.fillRect(gx, gy, step, step);
+        }
+      }
+      // 축
+      ctx.strokeStyle = C.line; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(px(0), 0); ctx.lineTo(px(0), S); ctx.moveTo(0, py(0)); ctx.lineTo(S, py(0)); ctx.stroke();
+      ctx.fillStyle = '#5b6478'; ctx.font = '12px sans-serif';
+      ctx.fillText('x₁', S - 18, py(0) - 6); ctx.fillText('x₂', px(0) + 6, 14);
+      // 결정 경계선 w1x + w2y + b = 0
+      ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.beginPath();
+      if (Math.abs(w2) > 1e-9) {
+        const y1 = (-b - w1 * lo) / w2, y2 = (-b - w1 * hi) / w2;
+        ctx.moveTo(px(lo), py(y1)); ctx.lineTo(px(hi), py(y2));
+      } else if (Math.abs(w1) > 1e-9) {
+        const x = -b / w1; ctx.moveTo(px(x), 0); ctx.lineTo(px(x), S);
+      }
+      ctx.stroke();
+      // 점: 목표 1 = 채운 원, 목표 0 = 빈 원. 테두리 색 = 맞음/틀림
+      PTS.forEach(([x, y], i) => {
+        ctx.beginPath(); ctx.arc(px(x), py(y), 10, 0, Math.PI * 2);
+        ctx.fillStyle = tgt[i] ? C.ink : '#fff'; ctx.fill();
+        ctx.lineWidth = 3; ctx.strokeStyle = outs[i] === tgt[i] ? C.ink : C.neg; ctx.stroke();
+      });
+    }
+
+    function render() {
+      const { w1, w2, b } = get();
+      root.querySelectorAll<HTMLOutputElement>('[data-out]').forEach((o) => {
+        const k = o.dataset.out as 'w1' | 'w2' | 'b';
+        o.textContent = ({ w1, w2, b }[k]).toFixed(1);
+      });
+      // 연결선: 파랑 = 양수, 빨강 = 음수, 굵기 = 크기
+      ([['w1', w1], ['w2', w2], ['b', b]] as [string, number][]).forEach(([k, v]) => {
+        const el = root.querySelector<SVGLineElement>(`[data-edge="${k}"]`)!;
+        el.style.stroke = v >= 0 ? C.pos : C.neg;
+        el.style.strokeWidth = String(1 + Math.min(Math.abs(v), 3) * 2.6);
+        el.style.opacity = Math.abs(v) < 0.05 ? '0.25' : '1';
+      });
+      const tgt = TARGETS[target];
+      const sums = PTS.map(([x1, x2]) => w1 * x1 + w2 * x2 + b);
+      const outs = sums.map((s) => (s >= 0 ? 1 : 0));
+      const rows = root.querySelector('[data-rows]')!;
+      rows.innerHTML = PTS.map(([x1, x2], i) => {
+        const hit = outs[i] === tgt[i];
+        return `<tr><td>${x1}</td><td>${x2}</td><td>${sums[i].toFixed(1)}</td><td>${outs[i]}</td><td>${tgt[i]}</td><td class="${hit ? 'hit' : 'miss'}">${hit ? '맞음' : '틀림'}</td></tr>`;
+      }).join('');
+      drawPlot(w1, w2, b, outs, tgt);
+
+      const score = outs.filter((o, i) => o === tgt[i]).length;
+      const el = root.querySelector<HTMLElement>('[data-score]')!;
+      el.classList.toggle('done', score === 4);
+      if (score === 4) el.textContent = `4칸 모두 맞혔습니다. 선 하나로 ${target} 문제를 풀었습니다.`;
+      else el.textContent = `4칸 중 ${score}칸을 맞혔습니다.`;
+      if (target === 'XOR' && score === 3) solvedXor3 = true;
+      root.querySelector<HTMLElement>('[data-why]')!.hidden = !(target === 'XOR' && solvedXor3);
+    }
+
+    inputs.forEach((i) => i.addEventListener('input', render));
+    root.querySelectorAll<HTMLButtonElement>('[data-target]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        target = btn.dataset.target!;
+        root.querySelectorAll('[data-target]').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+        render();
+      });
+    });
+    root.querySelector('[data-why-btn]')?.addEventListener('click', () => {
+      root.querySelector<HTMLElement>('[data-why-text]')!.hidden = false;
+    });
+    render();
+  });
+</script>

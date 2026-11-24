@@ -1,0 +1,8 @@
+---
+interface Props { title?: string; }
+const { title = '선생님 메모' } = Astro.props;
+---
+<details class="teacher">
+  <summary>{title}</summary>
+  <slot />
+</details>

@@ -1,0 +1,55 @@
+---
+// 숫자 인식 신경망 구조도: 784 → 128 → 64 → 10
+const cols = [
+  { x: 70, n: 7, label: '입력층', size: '784개', note: '픽셀 밝기' },
+  { x: 250, n: 6, label: '은닉층 1', size: '128개', note: 'ReLU' },
+  { x: 410, n: 5, label: '은닉층 2', size: '64개', note: 'ReLU' },
+  { x: 570, n: 10, label: '출력층', size: '10개', note: 'softmax' },
+];
+const H = 300, top = 40;
+const ys = (n: number) => Array.from({ length: n }, (_, i) => top + ((i + 0.5) * (H - top - 20)) / n);
+// 연결선 색: 양수/음수 가중치를 흉내 낸 고정 무늬
+const sign = (a: number, b: number) => ((a * 7 + b * 3) % 5 < 3 ? 'p' : 'n');
+// 생략 기호(⋮) 자리는 연결선을 긋지 않는다
+const isGap = (ci: number, i: number) => (ci === 0 && i === 3) || (ci > 0 && ci < 3 && i === Math.floor(cols[ci].n / 2));
+---
+<figure class="nd wide">
+  <svg viewBox="0 0 660 360" role="img" aria-label="입력층 784개, 은닉층 128개와 64개, 출력층 10개로 이루어진 신경망. 모든 노드는 다음 층의 모든 노드와 연결된다.">
+    {cols.slice(0, -1).map((c, ci) => {
+      const d = cols[ci + 1];
+      return ys(c.n).flatMap((y1, i) => isGap(ci, i) ? [] : ys(d.n).flatMap((y2, j) => isGap(ci + 1, j) ? [] : [
+        <line x1={c.x} y1={y1} x2={d.x} y2={y2} class={`e ${sign(i + ci, j)}`} />
+      ]));
+    })}
+    {cols.map((c, ci) => (
+      <g>
+        {ys(c.n).map((y, i) => (
+          ci === 0 && i === 3 ? <text x={c.x} y={y + 5} class="dots">⋮</text> :
+          ci > 0 && ci < 3 && i === Math.floor(c.n / 2) ? <text x={c.x} y={y + 5} class="dots">⋮</text> :
+          <circle cx={c.x} cy={y} r={ci === 3 ? 8 : 9} class={ci === 3 && i === 7 ? 'node hot' : 'node'} />
+        ))}
+        <text x={c.x} y="22" class="lbl">{c.label}</text>
+        <text x={c.x} y="318" class="size">{c.size}</text>
+        <text x={c.x} y="340" class="note">{c.note}</text>
+      </g>
+    ))}
+    {ys(10).map((y, i) => <text x="592" y={y + 4} class="digit">{i}</text>)}
+  </svg>
+  <figcaption>출력층의 10개 노드는 각각 0~9일 확률이다. 가장 큰 값(그림에서는 7)이 신경망의 답이 된다. 선의 파랑과 빨강은 가중치가 양수인지 음수인지를 나타낸다.</figcaption>
+</figure>
+
+<style>
+  .nd { margin: 1.4rem 0; }
+  svg { width: 100%; height: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m); }
+  .e { stroke-width: 0.8; opacity: 0.45; }
+  .e.p { stroke: var(--pos); }
+  .e.n { stroke: var(--neg); }
+  .node { fill: #fff; stroke: var(--ink); stroke-width: 2; }
+  .node.hot { fill: var(--fire); }
+  .dots { font-size: 20px; text-anchor: middle; fill: var(--muted); }
+  .lbl { font-size: 14px; font-weight: 700; text-anchor: middle; fill: var(--ink); font-family: var(--font); }
+  .size { font-size: 14px; font-weight: 800; text-anchor: middle; fill: var(--ink); font-family: var(--font); }
+  .note { font-size: 12px; text-anchor: middle; fill: var(--muted); font-family: var(--font); }
+  .digit { font-size: 11px; fill: var(--muted); font-family: var(--font); }
+  figcaption { font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem; max-width: var(--measure); }
+</style>

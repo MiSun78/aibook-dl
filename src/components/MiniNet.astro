@@ -1,0 +1,263 @@
+---
+// 작은 신경망 놀이터: 브라우저 안에서 신경망을 직접 학습시킨다.
+---
+<div class="widget mn" data-mininet>
+  <p class="widget-title">은닉층 실험실</p>
+  <p class="widget-help">데이터를 고르고 은닉층 수와 뉴런 수를 정한 뒤 [학습 시작]을 누르세요. 배경색은 신경망이 각 위치를 어느 쪽으로 판단하는지 보여 줍니다.</p>
+
+  <div class="mn-grid">
+    <div class="mn-controls">
+      <fieldset>
+        <legend>데이터</legend>
+        <div class="mn-seg">
+          <button type="button" class="ghost" data-ds="xor" aria-pressed="true">XOR</button>
+          <button type="button" class="ghost" data-ds="circle" aria-pressed="false">원</button>
+          <button type="button" class="ghost" data-ds="spiral" aria-pressed="false">나선</button>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>은닉층 수</legend>
+        <div class="mn-seg">
+          <button type="button" class="ghost" data-layers="0" aria-pressed="true">0개</button>
+          <button type="button" class="ghost" data-layers="1" aria-pressed="false">1개</button>
+          <button type="button" class="ghost" data-layers="2" aria-pressed="false">2개</button>
+          <button type="button" class="ghost" data-layers="3" aria-pressed="false">3개</button>
+        </div>
+      </fieldset>
+      <label class="mn-range"><span>층마다 뉴런 수 <output data-nout>4</output></span>
+        <input type="range" min="1" max="8" step="1" value="4" data-neurons /></label>
+
+      <p class="mn-arch" data-arch></p>
+
+      <div class="mn-actions">
+        <button type="button" data-run>학습 시작</button>
+        <button type="button" class="ghost" data-reset>처음부터</button>
+      </div>
+
+      <dl class="mn-stats">
+        <div><dt>학습 횟수</dt><dd data-epoch>0</dd></div>
+        <div><dt>손실</dt><dd data-loss>-</dd></div>
+        <div><dt>정확도</dt><dd data-acc>-</dd></div>
+      </dl>
+    </div>
+
+    <div class="mn-stage">
+      <canvas width="300" height="300" aria-label="데이터 점과 신경망의 판단 영역"></canvas>
+      <p class="mn-legend"><span class="dot pos"></span>파랑 집단 <span class="dot neg"></span>빨강 집단</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .mn-grid { display: grid; grid-template-columns: minmax(240px, 1fr) 300px; gap: 1.5rem; align-items: start; }
+  fieldset { border: 0; padding: 0; margin: 0 0 0.9rem; }
+  legend { font-weight: 650; font-size: 0.93rem; margin-bottom: 0.35rem; }
+  .mn-seg { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .mn-seg button { padding: 0.3em 0.8em; }
+  .mn-seg button[aria-pressed='true'] { background: var(--ink); color: #fff; }
+  .mn-range { display: block; margin-bottom: 0.7rem; }
+  .mn-range span { display: flex; justify-content: space-between; font-weight: 650; font-size: 0.93rem; }
+  .mn-range output { font-weight: 750; }
+  .mn-arch { font-size: 0.92rem; color: var(--ink-2); background: var(--paper); border-radius: var(--radius-s); padding: 0.45rem 0.7rem; }
+  .mn-actions { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+  .mn-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin: 0; }
+  .mn-stats div { background: var(--paper); border-radius: var(--radius-s); padding: 0.4rem 0.6rem; }
+  .mn-stats dt { font-size: 0.8rem; color: var(--muted); }
+  .mn-stats dd { margin: 0; font-weight: 800; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+  .mn-stage canvas { width: 300px; height: 300px; border-radius: var(--radius-s); border: 1px solid var(--line); display: block; }
+  .mn-legend { font-size: 0.85rem; color: var(--muted); margin: 0.4rem 0 0; display: flex; align-items: center; gap: 0.35rem; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-left: 0.4rem; }
+  .dot.pos { background: var(--pos); }
+  .dot.neg { background: var(--neg); }
+  @media (max-width: 760px) { .mn-grid { grid-template-columns: 1fr; } .mn-stage canvas { margin: 0 auto; } }
+</style>
+
+<script>
+  type DS = { x: number[][]; y: number[] };
+
+  function rng(seed: number) {
+    let s = seed >>> 0;
+    return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+  }
+  function makeData(kind: string): DS {
+    const r = rng(7), x: number[][] = [], y: number[] = [];
+    if (kind === 'xor') {
+      while (x.length < 200) {
+        const a = r() * 2 - 1, b = r() * 2 - 1;
+        if (Math.abs(a) < 0.08 || Math.abs(b) < 0.08) continue;
+        x.push([a, b]); y.push(a * b > 0 ? 1 : 0);
+      }
+    } else if (kind === 'circle') {
+      for (let i = 0; i < 200; i++) {
+        const inner = i % 2 === 0;
+        const rad = inner ? r() * 0.45 : 0.65 + r() * 0.3;
+        const t = r() * Math.PI * 2;
+        x.push([rad * Math.cos(t), rad * Math.sin(t)]); y.push(inner ? 1 : 0);
+      }
+    } else {
+      for (let i = 0; i < 100; i++) {
+        for (const c of [0, 1]) {
+          const rad = (i / 100) * 0.92 + 0.05;
+          const t = 1.6 * (i / 100) * Math.PI * 2 + c * Math.PI;
+          x.push([rad * Math.sin(t) + (r() - 0.5) * 0.06, rad * Math.cos(t) + (r() - 0.5) * 0.06]);
+          y.push(c);
+        }
+      }
+    }
+    return { x, y };
+  }
+
+  // 아주 작은 신경망 (tanh 은닉층, sigmoid 출력, Adam)
+  class Net {
+    W: number[][][] = []; B: number[][] = [];
+    mW: number[][][] = []; vW: number[][][] = []; mB: number[][] = []; vB: number[][] = [];
+    t = 0;
+    constructor(public sizes: number[]) {
+      for (let l = 0; l < sizes.length - 1; l++) {
+        const a = sizes[l], b = sizes[l + 1], sc = Math.sqrt(1 / a);
+        this.W.push(Array.from({ length: a }, () => Array.from({ length: b }, () => (Math.random() * 2 - 1) * sc * 1.7)));
+        this.B.push(new Array(b).fill(0));
+        this.mW.push(Array.from({ length: a }, () => new Array(b).fill(0)));
+        this.vW.push(Array.from({ length: a }, () => new Array(b).fill(0)));
+        this.mB.push(new Array(b).fill(0)); this.vB.push(new Array(b).fill(0));
+      }
+    }
+    forward(x: number[]) {
+      const acts = [x];
+      let h = x;
+      for (let l = 0; l < this.W.length; l++) {
+        const W = this.W[l], B = this.B[l], out = B.slice();
+        for (let i = 0; i < h.length; i++) { const hi = h[i]; for (let j = 0; j < out.length; j++) out[j] += hi * W[i][j]; }
+        const last = l === this.W.length - 1;
+        h = out.map((z) => (last ? 1 / (1 + Math.exp(-z)) : Math.tanh(z)));
+        acts.push(h);
+      }
+      return acts;
+    }
+    predict(x: number[]) { const a = this.forward(x); return a[a.length - 1][0]; }
+    trainEpoch(d: DS, lr = 0.03) {
+      const L = this.W.length;
+      const gW = this.W.map((W) => W.map((r) => r.map(() => 0)));
+      const gB = this.B.map((b) => b.map(() => 0));
+      let loss = 0, correct = 0;
+      for (let n = 0; n < d.x.length; n++) {
+        const acts = this.forward(d.x[n]);
+        const p = acts[L][0], yv = d.y[n];
+        loss += -(yv * Math.log(p + 1e-9) + (1 - yv) * Math.log(1 - p + 1e-9));
+        if ((p >= 0.5 ? 1 : 0) === yv) correct++;
+        let delta = [p - yv];
+        for (let l = L - 1; l >= 0; l--) {
+          const a = acts[l];
+          for (let i = 0; i < a.length; i++) for (let j = 0; j < delta.length; j++) gW[l][i][j] += a[i] * delta[j];
+          for (let j = 0; j < delta.length; j++) gB[l][j] += delta[j];
+          if (l > 0) {
+            const nd = new Array(a.length).fill(0);
+            for (let i = 0; i < a.length; i++) {
+              let s = 0; for (let j = 0; j < delta.length; j++) s += this.W[l][i][j] * delta[j];
+              nd[i] = s * (1 - a[i] * a[i]);
+            }
+            delta = nd;
+          }
+        }
+      }
+      const N = d.x.length, b1 = 0.9, b2 = 0.999; this.t++;
+      const c1 = 1 - Math.pow(b1, this.t), c2 = 1 - Math.pow(b2, this.t);
+      for (let l = 0; l < L; l++) {
+        for (let i = 0; i < this.W[l].length; i++) for (let j = 0; j < this.W[l][i].length; j++) {
+          const g = gW[l][i][j] / N;
+          this.mW[l][i][j] = b1 * this.mW[l][i][j] + (1 - b1) * g;
+          this.vW[l][i][j] = b2 * this.vW[l][i][j] + (1 - b2) * g * g;
+          this.W[l][i][j] -= lr * (this.mW[l][i][j] / c1) / (Math.sqrt(this.vW[l][i][j] / c2) + 1e-8);
+        }
+        for (let j = 0; j < this.B[l].length; j++) {
+          const g = gB[l][j] / N;
+          this.mB[l][j] = b1 * this.mB[l][j] + (1 - b1) * g;
+          this.vB[l][j] = b2 * this.vB[l][j] + (1 - b2) * g * g;
+          this.B[l][j] -= lr * (this.mB[l][j] / c1) / (Math.sqrt(this.vB[l][j] / c2) + 1e-8);
+        }
+      }
+      return { loss: loss / N, acc: correct / N };
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-mininet]').forEach((root) => {
+    let ds = 'xor', layers = 0, neurons = 4, running = false, epoch = 0, raf = 0;
+    let data = makeData(ds);
+    let net: Net;
+    const canvas = root.querySelector('canvas')!;
+    const ctx = canvas.getContext('2d')!;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = 300 * dpr; canvas.height = 300 * dpr; ctx.scale(dpr, dpr);
+    const runBtn = root.querySelector<HTMLButtonElement>('[data-run]')!;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const S = 300, R = 1.15;
+    const toPx = (v: number) => ((v + R) / (2 * R)) * S;
+
+    function build() {
+      const sizes = [2, ...Array(layers).fill(neurons), 1];
+      net = new Net(sizes);
+      epoch = 0;
+      const hidden = layers === 0 ? '은닉층 없음' : `은닉층 ${layers}개 × 뉴런 ${neurons}개`;
+      root.querySelector('[data-arch]')!.textContent = `입력 2개 → ${hidden} → 출력 1개 (은닉 뉴런 합계 ${layers * neurons}개)`;
+      root.querySelector('[data-epoch]')!.textContent = '0';
+      root.querySelector('[data-loss]')!.textContent = '-';
+      root.querySelector('[data-acc]')!.textContent = '-';
+      draw();
+    }
+
+    function draw() {
+      const G = 60, cell = S / G;
+      for (let gx = 0; gx < G; gx++) for (let gy = 0; gy < G; gy++) {
+        const x = -R + ((gx + 0.5) / G) * 2 * R;
+        const y = R - ((gy + 0.5) / G) * 2 * R;
+        const p = epoch === 0 ? 0.5 : net.predict([x, y]);
+        // p → 파랑(1) / 빨강(0), 0.5 근처는 흰색
+        const k = Math.abs(p - 0.5) * 2;
+        const [r, g, b] = p >= 0.5 ? [37, 99, 235] : [224, 70, 78];
+        const mix = (c: number) => Math.round(255 - (255 - c) * k * 0.42);
+        ctx.fillStyle = `rgb(${mix(r)},${mix(g)},${mix(b)})`;
+        ctx.fillRect(gx * cell, gy * cell, cell + 0.5, cell + 0.5);
+      }
+      data.x.forEach((pt, i) => {
+        ctx.beginPath();
+        ctx.arc(toPx(pt[0]), S - toPx(pt[1]), 4, 0, Math.PI * 2);
+        ctx.fillStyle = data.y[i] ? '#2563eb' : '#e0464e';
+        ctx.fill(); ctx.lineWidth = 1.2; ctx.strokeStyle = '#fff'; ctx.stroke();
+      });
+    }
+
+    function tick() {
+      let res = { loss: 0, acc: 0 };
+      const steps = reduce ? 40 : 8;
+      for (let i = 0; i < steps; i++) { res = net.trainEpoch(data); epoch++; }
+      root.querySelector('[data-epoch]')!.textContent = String(epoch);
+      root.querySelector('[data-loss]')!.textContent = res.loss.toFixed(3);
+      root.querySelector('[data-acc]')!.textContent = `${Math.round(res.acc * 100)}%`;
+      draw();
+      if (epoch >= 5000) stop();
+      else if (running) raf = requestAnimationFrame(tick);
+    }
+    function start() { running = true; runBtn.textContent = '멈추기'; raf = requestAnimationFrame(tick); }
+    function stop() { running = false; runBtn.textContent = '이어서 학습'; cancelAnimationFrame(raf); }
+
+    runBtn.addEventListener('click', () => (running ? stop() : start()));
+    root.querySelector('[data-reset]')!.addEventListener('click', () => { stop(); runBtn.textContent = '학습 시작'; build(); });
+
+    const pick = (attr: string, fn: (v: string) => void) =>
+      root.querySelectorAll<HTMLButtonElement>(`[${attr}]`).forEach((b) =>
+        b.addEventListener('click', () => {
+          root.querySelectorAll(`[${attr}]`).forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+          stop(); runBtn.textContent = '학습 시작';
+          fn(b.getAttribute(attr)!); build();
+        }));
+    pick('data-ds', (v) => { ds = v; data = makeData(ds); });
+    pick('data-layers', (v) => { layers = parseInt(v); });
+    root.querySelector<HTMLInputElement>('[data-neurons]')!.addEventListener('input', (e) => {
+      neurons = parseInt((e.target as HTMLInputElement).value);
+      root.querySelector('[data-nout]')!.textContent = String(neurons);
+      stop(); runBtn.textContent = '학습 시작'; build();
+    });
+    build();
+  });
+</script>
