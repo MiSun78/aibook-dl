@@ -14,6 +14,8 @@ export const SITE = {
 
   // 단원별 구글 문서 학습지 ID (docs.google.com/document/d/[이 부분]/edit).
   // 버튼을 누르면 학생 드라이브에 사본이 만들어집니다. 비워 두면 버튼이 숨겨집니다.
+  // 학생에게 사이트의 [내 학습지 만들기] 버튼을 보여 줄지. 원본을 학생이 볼 수 있게 공유했을 때만 true로 바꾸세요.
+  worksheetButton: false,
   worksheets: {
     u1: '1eQd5JTBq60AkIeaWRrG45suPNh9kiX5ps7rp6rvxxRs',
     u2: '11ejDgD3mApFvbUp00lJs2FOrUd2SkcrVn81ef8OZDYc',
@@ -21,6 +23,7 @@ export const SITE = {
 };
 
 export function worksheetCopyUrl(id: string): string | null {
+  if (!SITE.worksheetButton) return null;
   const doc = SITE.worksheets[id];
   return doc ? `https://docs.google.com/document/d/${doc}/copy` : null;
 }
