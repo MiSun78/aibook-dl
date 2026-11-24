@@ -1,0 +1,54 @@
+---
+import './fig.css';
+---
+<figure class="fg">
+  <svg viewBox="0 0 460 250" role="img" aria-label="생물의 뉴런과 인공 뉴런 비교: 수상돌기는 입력, 시냅스의 연결 강도는 가중치, 세포체는 가중합과 활성화 함수, 축삭은 출력에 해당한다">
+    <defs>
+      <marker id="fn-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#3a4560" /></marker>
+    </defs>
+    <text x="115" y="24" class="th c">사람의 뉴런</text>
+    <text x="345" y="24" class="th c">인공 뉴런</text>
+    <line x1="230" y1="38" x2="230" y2="200" stroke="#dde1e8" />
+
+    <!-- 생물 뉴런 -->
+    <g class="ink" stroke-linecap="round">
+      <path d="M70 110 L40 70 M40 70 L28 58 M40 70 L30 78" />
+      <path d="M68 104 L30 104 M30 104 L18 96 M30 104 L18 112" />
+      <path d="M72 122 L42 152 M42 152 L28 156 M42 152 L40 166" />
+      <path d="M108 112 L190 112" />
+      <path d="M190 112 L206 98 M190 112 L208 112 M190 112 L206 126" />
+    </g>
+    <circle cx="88" cy="112" r="20" fill="#fdf3dc" stroke="#172038" stroke-width="2" />
+    <circle cx="88" cy="112" r="6" fill="#172038" />
+    <circle cx="210" cy="98" r="3" fill="#2563eb" /><circle cx="212" cy="112" r="3" fill="#2563eb" /><circle cx="210" cy="126" r="3" fill="#2563eb" />
+    <text x="40" y="190" class="t c">수상돌기</text>
+    <text x="40" y="206" class="ts c">신호를 받음</text>
+    <text x="90" y="160" class="t c">세포체</text>
+    <text x="90" y="176" class="ts c">신호를 모음</text>
+    <text x="150" y="98" class="t c">축삭</text>
+    <text x="196" y="160" class="t c">시냅스</text>
+    <text x="196" y="176" class="ts c">다음 뉴런과 연결</text>
+
+    <!-- 인공 뉴런 -->
+    {[70, 112, 154].map((y, i) => (
+      <g>
+        <line x1="270" y1={y} x2="342" y2="112" class={i === 1 ? 'neg' : 'pos'} stroke-width={i === 0 ? 3.5 : i === 1 ? 1.6 : 2.4} />
+        <circle cx="262" cy={y} r="11" class="node" />
+        <text x="262" y={y + 4} class="ts c" style="fill:#172038;font-weight:700">x{['₁', '₂', '₃'][i]}</text>
+      </g>
+    ))}
+    <circle cx="352" cy="112" r="20" fill="#fdf3dc" stroke="#172038" stroke-width="2" />
+    <text x="352" y="118" class="th c">Σ</text>
+    <line x1="372" y1="112" x2="420" y2="112" class="arw" marker-end="url(#fn-a)" />
+    <circle cx="434" cy="112" r="12" class="hot" />
+    <text x="434" y="117" class="ts c" style="fill:#172038;font-weight:700">y</text>
+    <text x="262" y="190" class="t c">입력</text>
+    <text x="304" y="58" class="ts c">가중치</text>
+    <text x="352" y="160" class="t c">가중합</text>
+    <text x="352" y="176" class="ts c">+ 활성화 함수</text>
+    <text x="434" y="160" class="t c">출력</text>
+
+    <text x="230" y="234" class="ts c">수상돌기 = 입력, 시냅스의 연결 강도 = 가중치, 세포체 = 가중합과 활성화 함수, 축삭 = 출력</text>
+  </svg>
+  <figcaption>인공 뉴런은 뉴런이 신호를 받아 모으고 전달하는 방식을 흉내 낸다. 선의 굵기는 가중치의 크기, 파랑과 빨강은 양수와 음수를 뜻한다.</figcaption>
+</figure>

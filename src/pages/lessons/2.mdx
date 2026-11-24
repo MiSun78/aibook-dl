@@ -5,10 +5,17 @@ import Record from '../../components/Record.astro';
 import DrawPad from '../../components/DrawPad.astro';
 import NetDiagram from '../../components/NetDiagram.astro';
 import Colab from '../../components/Colab.astro';
+import Split from '../../components/Split.astro';
+import FigSteps from '../../components/figs/FigSteps.astro';
+import FigTrain from '../../components/figs/FigTrain.astro';
+import FigFlatten from '../../components/figs/FigFlatten.astro';
 
 <Lesson n={2} ids={['s1', 'ex', 's3', 'p5', 'more', 'orange']}>
 
 <Sec id="s1" title="모델의 구현 과정" pages="133쪽">
+
+<Split>
+<div>
 
 신경망 모델도 2단원에서 배운 기계학습 모델과 같은 순서로 만든다. 다른 점은 3단계에서 신경망을 직접 설계한다는 것이다.
 
@@ -19,6 +26,10 @@ import Colab from '../../components/Colab.astro';
     2. 신경망 모델 환경 설정하기: 손실 함수와 최적화 함수를 정한다.
     3. 신경망 모델 학습하기: 훈련 데이터로 학습시킨다.
 4. **모델 평가 및 예측하기**: 테스트 데이터로 성능을 측정하고, 개선할 방향을 찾는다.
+
+</div>
+<FigSteps />
+</Split>
 
 </Sec>
 
@@ -74,7 +85,14 @@ model.compile(loss='sparse_categorical_crossentropy',   # 손실 함수
 
 ### 3) 신경망 모델 학습하기
 
+<Split>
+<div>
+
 처음에는 가중치가 무작위로 정해져 있어서 엉뚱한 예측을 한다. 입력이 신경망을 통과해 예측값을 내는 과정을 **순전파**, 예측값과 정답의 차이(손실)를 이용해 거꾸로 가중치를 고치는 과정을 **역전파**라고 한다. 이 과정을 여러 번 반복하면서 신경망은 데이터의 패턴을 학습한다. 반복 횟수는 `epochs`로 정한다.
+
+</div>
+<FigTrain />
+</Split>
 
 ```python
 model.fit(X, y, epochs=500)   # 데이터로 500번 반복 학습
@@ -105,7 +123,14 @@ model.predict(X)       # 클래스마다의 확률을 출력
 
 <Sec id="p5" title="손으로 쓴 숫자 분류 모델 구현하기" pages="137~140쪽" kind="실습 5">
 
+<Split>
+<div>
+
 **MNIST**는 0~9까지 손으로 쓴 숫자를 픽셀값으로 저장한 데이터셋이다. 숫자 하나가 28×28 크기이고, 픽셀마다 0(검은색)부터 255(흰색)까지의 값을 가진다. 훈련 데이터 60,000개, 테스트 데이터 10,000개로 나뉘어 있다.
+
+</div>
+<FigFlatten />
+</Split>
 
 <NetDiagram
   layers={[

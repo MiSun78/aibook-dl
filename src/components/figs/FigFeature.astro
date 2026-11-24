@@ -1,0 +1,52 @@
+---
+import './fig.css';
+---
+<figure class="fg">
+  <svg viewBox="0 0 460 300" role="img" aria-label="딥러닝 이전에는 사람이 속성을 정해 분류 알고리즘에 넣고, 딥러닝은 심층 신경망이 속성 추출과 분류를 함께 한다">
+    <defs>
+      <marker id="ff-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#3a4560" /></marker>
+      <g id="ff-face">
+        <rect x="0" y="0" width="52" height="62" rx="6" fill="#fff" stroke="#172038" stroke-width="2" />
+        <circle cx="26" cy="27" r="14" fill="none" stroke="#172038" stroke-width="2" />
+        <circle cx="21" cy="25" r="1.8" fill="#172038" /><circle cx="31" cy="25" r="1.8" fill="#172038" />
+        <path d="M20 33 Q26 37 32 33" fill="none" stroke="#172038" stroke-width="1.6" />
+        <path d="M12 58 Q26 40 40 58" fill="none" stroke="#172038" stroke-width="2" />
+      </g>
+    </defs>
+
+    <text x="12" y="24" class="th">딥러닝 이전의 기계학습</text>
+    <use href="#ff-face" x="12" y="44" />
+    <line x1="68" y1="75" x2="92" y2="75" class="arw" marker-end="url(#ff-a)" />
+    <rect x="96" y="40" width="130" height="70" rx="8" class="boxh" />
+    <text x="161" y="62" class="tb c">사람이 속성을 정함</text>
+    <text x="161" y="82" class="ts c">눈 사이의 거리</text>
+    <text x="161" y="98" class="ts c">귀의 크기 …</text>
+    <line x1="230" y1="75" x2="254" y2="75" class="arw" marker-end="url(#ff-a)" />
+    <rect x="258" y="40" width="118" height="70" rx="8" class="box" />
+    <text x="317" y="62" class="tb c">분류 알고리즘</text>
+    <text x="317" y="82" class="ts c">로지스틱 회귀</text>
+    <text x="317" y="98" class="ts c">결정트리, kNN</text>
+    <line x1="380" y1="75" x2="398" y2="75" class="arw" marker-end="url(#ff-a)" />
+    <text x="404" y="70" class="t">판단</text>
+    <text x="404" y="88" class="ts">(출력)</text>
+
+    <line x1="12" y1="140" x2="448" y2="140" stroke="#dde1e8" />
+
+    <text x="12" y="172" class="th">딥러닝</text>
+    <use href="#ff-face" x="12" y="194" />
+    <line x1="68" y1="225" x2="92" y2="225" class="arw" marker-end="url(#ff-a)" />
+    <rect x="96" y="186" width="280" height="78" rx="8" class="boxb" />
+    <text x="236" y="207" class="tb c">심층 신경망: 속성 추출 + 분류</text>
+    {[0, 1, 2, 3, 4].map((c) => [0, 1, 2].map((r) => (
+      <circle cx={150 + c * 42} cy={222 + r * 14} r="4.5" class={c === 4 && r === 1 ? 'hot' : 'node'} style="stroke-width:1.5" />
+    )))}
+    {[0, 1, 2, 3].map((c) => [0, 1, 2].map((r) => [0, 1, 2].map((r2) => (
+      <line x1={154 + c * 42} y1={222 + r * 14} x2={188 + c * 42} y2={222 + r2 * 14} stroke={(r + r2 + c) % 3 ? '#2563eb' : '#e0464e'} stroke-width="0.7" opacity="0.55" />
+    ))))}
+    <line x1="380" y1="225" x2="398" y2="225" class="arw" marker-end="url(#ff-a)" />
+    <text x="404" y="220" class="t">판단</text>
+    <text x="404" y="238" class="ts">(출력)</text>
+    <text x="236" y="286" class="ts c">대량의 이미지를 학습하며 핵심 속성을 스스로 찾는다</text>
+  </svg>
+  <figcaption>딥러닝 이전에는 사람이 고른 속성으로 분류했고, 딥러닝은 신경망이 속성을 찾는 일까지 한다.</figcaption>
+</figure>

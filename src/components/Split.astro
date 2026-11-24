@@ -1,0 +1,20 @@
+---
+// 설명(왼쪽)과 그림(오른쪽)을 나란히 놓는다. 좁은 화면에서는 그림이 설명 아래로 내려간다.
+// 사용법: <Split> <div>설명</div> <figure>그림</figure> </Split>
+interface Props { ratio?: string }
+const { ratio = '1.15fr 1fr' } = Astro.props;
+---
+<div class="split" style={`--ratio:${ratio}`}><slot /></div>
+
+<style>
+  .split {
+    display: grid; grid-template-columns: var(--ratio); gap: 1.8rem; align-items: start;
+    max-width: var(--wide); margin: 0 0 1.2rem;
+  }
+  .split > :global(*) { min-width: 0; }
+  .split > :global(figure) { margin: 0.3rem 0 0; position: sticky; top: 1rem; }
+  @media (max-width: 1100px) {
+    .split { grid-template-columns: 1fr; gap: 0.6rem; }
+    .split > :global(figure) { position: static; max-width: 34rem; }
+  }
+</style>

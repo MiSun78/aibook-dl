@@ -1,0 +1,21 @@
+/* 그림 공통 스타일 */
+.fg { margin: 0; }
+.fg svg { width: 100%; height: auto; display: block; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m); }
+.fg figcaption { font-size: 0.85rem; color: var(--muted); margin-top: 0.45rem; line-height: 1.55; }
+.fg text { font-family: var(--font); fill: var(--ink); }
+.fg .t { font-size: 13px; }
+.fg .ts { font-size: 11px; fill: var(--muted); }
+.fg .tb { font-size: 14px; font-weight: 700; }
+.fg .th { font-size: 15px; font-weight: 800; }
+.fg .c { text-anchor: middle; }
+.fg .e { text-anchor: end; }
+.fg .ink { stroke: var(--ink); fill: none; stroke-width: 2; }
+.fg .node { fill: #fff; stroke: var(--ink); stroke-width: 2; }
+.fg .hot { fill: var(--fire); stroke: var(--ink); stroke-width: 2; }
+.fg .pos { stroke: var(--pos); }
+.fg .neg { stroke: var(--neg); }
+.fg .box { fill: var(--paper); stroke: var(--line-strong); stroke-width: 1.5; }
+.fg .boxh { fill: var(--fire-soft); stroke: var(--fire); stroke-width: 1.5; }
+.fg .boxb { fill: var(--pos-soft); stroke: var(--pos); stroke-width: 1.5; }
+.fg .arw { stroke: var(--ink-2); stroke-width: 1.8; fill: none; }
+.fg .dash { stroke-dasharray: 4 4; }

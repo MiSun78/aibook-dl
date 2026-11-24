@@ -1,0 +1,44 @@
+---
+import './fig.css';
+---
+<figure class="fg">
+  <svg viewBox="0 0 460 240" role="img" aria-label="퍼셉트론 구조: 입력 x1, x2에 가중치 w1, w2를 곱해 더하고 편향 b를 더한 가중합이 계단 함수를 거쳐 0 또는 1을 출력한다">
+    <defs>
+      <marker id="fp-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#3a4560" /></marker>
+    </defs>
+    <text x="36" y="28" class="ts c">입력</text>
+    <line x1="52" y1="74" x2="178" y2="120" class="pos" stroke-width="3.2" />
+    <line x1="52" y1="166" x2="178" y2="120" class="neg" stroke-width="2" />
+    <circle cx="36" cy="72" r="17" class="node" />
+    <text x="36" y="77" class="tb c">x₁</text>
+    <circle cx="36" cy="168" r="17" class="node" />
+    <text x="36" y="173" class="tb c">x₂</text>
+    <text x="112" y="82" class="t c" style="fill:#2563eb;font-weight:700">w₁</text>
+    <text x="112" y="170" class="t c" style="fill:#e0464e;font-weight:700">w₂</text>
+    <line x1="200" y1="44" x2="200" y2="94" class="arw" marker-end="url(#fp-a)" />
+    <text x="200" y="36" class="t c">편향 b</text>
+    <circle cx="200" cy="120" r="24" fill="#fdf3dc" stroke="#172038" stroke-width="2" />
+    <text x="200" y="127" class="th c">Σ</text>
+    <text x="200" y="168" class="t c">가중합</text>
+    <text x="200" y="186" class="ts c">w₁x₁ + w₂x₂ + b</text>
+
+    <line x1="226" y1="120" x2="262" y2="120" class="arw" marker-end="url(#fp-a)" />
+    <rect x="266" y="78" width="104" height="84" rx="8" class="box" />
+    <line x1="280" y1="150" x2="356" y2="150" stroke="#b9c0cc" />
+    <line x1="318" y1="92" x2="318" y2="156" stroke="#b9c0cc" />
+    <path d="M280 146 L318 146 L318 98 L356 98" fill="none" stroke="#172038" stroke-width="2.5" />
+    <text x="358" y="108" class="ts e">1</text>
+    <text x="284" y="141" class="ts">0</text>
+    <text x="318" y="182" class="t c">활성화 함수</text>
+    <text x="318" y="199" class="ts c">(계단 함수)</text>
+
+    <line x1="374" y1="120" x2="408" y2="120" class="arw" marker-end="url(#fp-a)" />
+    <circle cx="426" cy="120" r="17" class="hot" />
+    <text x="426" y="125" class="tb c">y</text>
+    <text x="426" y="168" class="t c">출력</text>
+    <text x="426" y="186" class="ts c">0 또는 1</text>
+
+    <text x="230" y="226" class="ts c">가중합이 임곗값(여기서는 0) 이상이면 1, 아니면 0을 출력한다</text>
+  </svg>
+  <figcaption>퍼셉트론의 계산 순서: 입력 × 가중치 → 모두 더하고 편향을 더함 → 활성화 함수 → 출력</figcaption>
+</figure>

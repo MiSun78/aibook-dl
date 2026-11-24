@@ -1,0 +1,38 @@
+---
+import './fig.css';
+const L = [2, 3, 3, 3];
+const xs = [40, 110, 180, 250];
+const yy = (n: number, i: number) => 70 + ((i + 0.5) * 100) / n;
+---
+<figure class="fg">
+  <svg viewBox="0 0 460 250" role="img" aria-label="순전파로 입력이 신경망을 지나 예측값이 나오고, 손실 함수가 예측값과 실젯값의 차이를 재며, 최적화 함수가 역전파로 가중치를 고친다. 손실이 작아질 때까지 반복한다">
+    <defs>
+      <marker id="ft-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#2563eb" /></marker>
+      <marker id="ft-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#e0464e" /></marker>
+      <marker id="ft-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#3a4560" /></marker>
+    </defs>
+    <path d="M40 46 L262 46" stroke="#2563eb" stroke-width="2.5" fill="none" marker-end="url(#ft-b)" />
+    <text x="150" y="36" class="tb c" style="fill:#2563eb">① 순전파: 입력 → 예측값</text>
+
+    {L.slice(0, -1).map((n, li) => Array.from({ length: n }).map((_, a) => Array.from({ length: L[li + 1] }).map((_, b) => (
+      <line x1={xs[li]} y1={yy(n, a)} x2={xs[li + 1]} y2={yy(L[li + 1], b)} stroke="#b9c0cc" stroke-width="1" />
+    ))))}
+    {L.map((n, li) => Array.from({ length: n }).map((_, i) => (
+      <circle cx={xs[li]} cy={yy(n, i)} r="8" class={li === 3 ? 'hot' : 'node'} style={li === 1 || li === 2 ? 'fill:#e3ecfd' : ''} />
+    )))}
+    <text x="40" y="190" class="ts c">입력층</text>
+    <text x="145" y="190" class="ts c">은닉층</text>
+    <text x="250" y="190" class="ts c">출력층</text>
+
+    <line x1="262" y1="120" x2="296" y2="120" class="arw" marker-end="url(#ft-a)" />
+    <rect x="300" y="78" width="146" height="84" rx="8" class="boxh" />
+    <text x="373" y="100" class="tb c">손실 함수</text>
+    <text x="373" y="120" class="ts c">예측값과 실젯값의</text>
+    <text x="373" y="136" class="ts c">차이(손실)를 잰다</text>
+    <text x="373" y="152" class="ts c">→ 최적화 함수(adam)</text>
+
+    <path d="M373 166 L373 214 L40 214 L40 200" stroke="#e0464e" stroke-width="2.5" fill="none" marker-end="url(#ft-r)" />
+    <text x="206" y="236" class="tb c" style="fill:#e0464e">② 역전파: 손실이 줄도록 가중치를 고침</text>
+  </svg>
+  <figcaption>①과 ②를 epochs만큼 반복하면서 손실은 줄고 정확도는 올라간다.</figcaption>
+</figure>

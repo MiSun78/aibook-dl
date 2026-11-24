@@ -4,14 +4,27 @@ import Ask from '../../components/Ask.astro';
 import Record from '../../components/Record.astro';
 import Perceptron from '../../components/Perceptron.astro';
 import MiniNet from '../../components/MiniNet.astro';
+import Split from '../../components/Split.astro';
+import FigFeature from '../../components/figs/FigFeature.astro';
+import FigNeuron from '../../components/figs/FigNeuron.astro';
+import FigPerceptron from '../../components/figs/FigPerceptron.astro';
+import FigLayers from '../../components/figs/FigLayers.astro';
+import FigXor from '../../components/figs/FigXor.astro';
 
 <Lesson n={1} ids={['s1', 's2', 's3', 'a7', 's5', 'a8']}>
 
 <Sec id="s1" title="딥러닝 이전의 기계학습과 딥러닝" pages="126쪽">
 
+<Split>
+<div>
+
 얼굴 사진을 보고 성별을 분류하는 모델을 만든다고 하자. 딥러닝 이전의 기계학습에서는 "눈 사이의 거리", "귀의 크기"처럼 분류에 쓸 속성을 **사람이 직접 정해서** 모델에 넣었다. 사람이 고른 속성이 충분하지 않으면 모델의 정확도도 낮아진다.
 
 딥러닝은 많은 양의 이미지를 학습하는 과정에서 분류에 필요한 핵심 속성을 **신경망이 스스로 찾아낸다.** 그래서 이미지, 소리, 글처럼 속성을 미리 정하기 어려운 데이터에서 정확도가 크게 높아졌다.
+
+</div>
+<FigFeature />
+</Split>
 
 | | 딥러닝 이전의 기계학습 | 딥러닝 |
 |---|---|---|
@@ -29,13 +42,27 @@ import MiniNet from '../../components/MiniNet.astro';
 
 <Sec id="s2" title="인공 신경망과 퍼셉트론" pages="127쪽">
 
+<Split>
+<div>
+
 사람의 뇌는 수많은 **뉴런**(신경 세포)으로 이루어져 있고, 뉴런들은 **시냅스**로 연결되어 신호를 주고받는다. **인공 신경망**은 이 뉴런과 시냅스가 작동하는 원리를 흉내 낸 모델이다.
+
+</div>
+<FigNeuron />
+</Split>
+
+<Split>
+<div>
 
 **퍼셉트론**은 인공 신경망을 이루는 가장 기본 단위로, 여러 신호를 입력받아 하나의 신호를 출력한다.
 
 1. 입력값(x₁, x₂, …)에 각각의 **가중치**(w₁, w₂, …)를 곱한다. 가중치는 그 입력이 얼마나 중요한지를 나타낸다.
 2. 곱한 값들을 모두 더한다(가중합). 여기에 **편향**(b)을 더하면 출력이 1이 되는 기준을 옮길 수 있다.
 3. 가중합이 **활성화 함수**를 거친다. 임곗값을 넘으면 1, 넘지 못하면 0을 출력한다.
+
+</div>
+<FigPerceptron />
+</Split>
 
 ### 직접 해 보기: 퍼셉트론 조종하기 <small>(교과서 밖 활동)</small>
 
@@ -57,9 +84,19 @@ import MiniNet from '../../components/MiniNet.astro';
 
 <Sec id="s3" title="다층 신경망, 심층 신경망, 딥러닝" pages="128쪽">
 
+<Split>
+<div>
+
 XOR처럼 직선 하나로 나눌 수 없는 문제를 **비선형 문제**라고 한다. 퍼셉트론 하나로는 풀 수 없다.
 
 **다층 신경망**(MLP)은 입력층과 출력층 사이에 **은닉층**을 넣어 여러 퍼셉트론이 함께 작동하게 한 구조다. 이렇게 하면 비선형 분류가 가능해진다.
+
+</div>
+<FigXor />
+</Split>
+
+<Split>
+<div>
 
 - **입력층**: 데이터를 입력받는 층
 - **은닉층**: 들어온 값에 가중치를 곱해 계산하고, 활성화 함수로 비선형적으로 바꿔 다음 층으로 전달하는 층
@@ -68,6 +105,10 @@ XOR처럼 직선 하나로 나눌 수 없는 문제를 **비선형 문제**라�
 **심층 신경망**(DNN)은 은닉층이 여러 개인 신경망으로, 더 복잡한 비선형 문제를 해결할 수 있다. 은닉층이 많을수록 신경망이 '깊다'고 한다.
 
 **딥러닝**은 심층 신경망으로 입력 데이터의 복잡한 패턴을 학습해 문제를 해결하는 분야다. 이미지 인식, 음성 인식, 자연어 처리처럼 기존 기계학습으로 풀기 어려웠던 문제에서 성능을 크게 높였다.
+
+</div>
+<FigLayers />
+</Split>
 
 </Sec>
 

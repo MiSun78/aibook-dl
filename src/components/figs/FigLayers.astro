@@ -1,0 +1,39 @@
+---
+import './fig.css';
+// 세 가지 구조: 퍼셉트론, 다층 신경망, 심층 신경망
+const panels = [
+  { x: 10, title: '퍼셉트론', sub: '은닉층 없음', layers: [2, 1] },
+  { x: 160, title: '다층 신경망', sub: '은닉층 1개', layers: [2, 3, 1] },
+  { x: 310, title: '심층 신경망', sub: '은닉층 여러 개', layers: [2, 3, 3, 3, 1] },
+];
+const W = 140, top = 54, h = 130;
+const pos = (p: typeof panels[0], li: number, ni: number) => {
+  const n = p.layers[li];
+  const x = p.x + 16 + (li * (W - 32)) / (p.layers.length - 1);
+  const y = top + ((ni + 0.5) * h) / n;
+  return [x, y];
+};
+---
+<figure class="fg">
+  <svg viewBox="0 0 460 240" role="img" aria-label="퍼셉트론은 입력층과 출력층만 있고, 다층 신경망은 은닉층이 1개, 심층 신경망은 은닉층이 여러 개다">
+    {panels.map((p) => (
+      <g>
+        <rect x={p.x} y="34" width={W} height="166" rx="8" fill="#f6f7f9" />
+        <text x={p.x + W / 2} y="24" class="tb c">{p.title}</text>
+        {p.layers.slice(0, -1).map((n, li) =>
+          Array.from({ length: n }).map((_, a) => Array.from({ length: p.layers[li + 1] }).map((_, b) => {
+            const [x1, y1] = pos(p, li, a); const [x2, y2] = pos(p, li + 1, b);
+            return <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={(a + b + li) % 3 ? '#2563eb' : '#e0464e'} stroke-width="1" opacity="0.6" />;
+          })))}
+        {p.layers.map((n, li) => Array.from({ length: n }).map((_, ni) => {
+          const [x, y] = pos(p, li, ni);
+          const last = li === p.layers.length - 1, first = li === 0;
+          return <circle cx={x} cy={y} r="7" class={last ? 'hot' : 'node'} style={!first && !last ? 'fill:#e3ecfd' : ''} />;
+        }))}
+        <text x={p.x + W / 2} y="218" class="t c">{p.sub}</text>
+      </g>
+    ))}
+    <text x="230" y="236" class="ts c">흰색 = 입력층, 파란색 = 은닉층, 호박색 = 출력층</text>
+  </svg>
+  <figcaption>은닉층이 많을수록 신경망이 '깊다'고 한다. 심층 신경망을 사용하는 학습이 딥러닝이다.</figcaption>
+</figure>
