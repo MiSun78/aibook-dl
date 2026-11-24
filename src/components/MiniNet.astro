@@ -24,6 +24,13 @@
           <button type="button" class="ghost" data-layers="3" aria-pressed="false">3개</button>
         </div>
       </fieldset>
+      <fieldset>
+        <legend>활성화 함수</legend>
+        <div class="mn-seg">
+          <button type="button" class="ghost" data-act="relu" aria-pressed="true">ReLU</button>
+          <button type="button" class="ghost" data-act="tanh" aria-pressed="false">tanh</button>
+        </div>
+      </fieldset>
       <label class="mn-range"><span>층마다 뉴런 수 <output data-nout>4</output></span>
         <input type="range" min="1" max="8" step="1" value="4" data-neurons /></label>
 
@@ -112,10 +119,10 @@
     W: number[][][] = []; B: number[][] = [];
     mW: number[][][] = []; vW: number[][][] = []; mB: number[][] = []; vB: number[][] = [];
     t = 0;
-    constructor(public sizes: number[]) {
+    constructor(public sizes: number[], public act: string = 'relu') {
       for (let l = 0; l < sizes.length - 1; l++) {
-        const a = sizes[l], b = sizes[l + 1], sc = Math.sqrt(1 / a);
-        this.W.push(Array.from({ length: a }, () => Array.from({ length: b }, () => (Math.random() * 2 - 1) * sc * 1.7)));
+        const a = sizes[l], b = sizes[l + 1], sc = Math.sqrt((act === 'relu' ? 2 : 1) / a);
+        this.W.push(Array.from({ length: a }, () => Array.from({ length: b }, () => (Math.random() * 2 - 1) * sc * (act === 'relu' ? 1.2 : 1.7))));
         this.B.push(new Array(b).fill(0));
         this.mW.push(Array.from({ length: a }, () => new Array(b).fill(0)));
         this.vW.push(Array.from({ length: a }, () => new Array(b).fill(0)));
@@ -129,7 +136,7 @@
         const W = this.W[l], B = this.B[l], out = B.slice();
         for (let i = 0; i < h.length; i++) { const hi = h[i]; for (let j = 0; j < out.length; j++) out[j] += hi * W[i][j]; }
         const last = l === this.W.length - 1;
-        h = out.map((z) => (last ? 1 / (1 + Math.exp(-z)) : Math.tanh(z)));
+        h = out.map((z) => (last ? 1 / (1 + Math.exp(-z)) : this.act === 'relu' ? Math.max(0, z) : Math.tanh(z)));
         acts.push(h);
       }
       return acts;
@@ -154,7 +161,7 @@
             const nd = new Array(a.length).fill(0);
             for (let i = 0; i < a.length; i++) {
               let s = 0; for (let j = 0; j < delta.length; j++) s += this.W[l][i][j] * delta[j];
-              nd[i] = s * (1 - a[i] * a[i]);
+              nd[i] = this.act === 'relu' ? (a[i] > 0 ? s : 0) : s * (1 - a[i] * a[i]);
             }
             delta = nd;
           }
@@ -181,7 +188,7 @@
   }
 
   document.querySelectorAll<HTMLElement>('[data-mininet]').forEach((root) => {
-    let ds = 'xor', layers = 0, neurons = 4, running = false, epoch = 0, raf = 0;
+    let ds = 'xor', act = 'relu', layers = 0, neurons = 4, running = false, epoch = 0, raf = 0;
     let data = makeData(ds);
     let net: Net;
     const canvas = root.querySelector('canvas')!;
@@ -196,10 +203,10 @@
 
     function build() {
       const sizes = [2, ...Array(layers).fill(neurons), 1];
-      net = new Net(sizes);
+      net = new Net(sizes, act);
       epoch = 0;
       const hidden = layers === 0 ? '은닉층 없음' : `은닉층 ${layers}개 × 뉴런 ${neurons}개`;
-      root.querySelector('[data-arch]')!.textContent = `입력 2개 → ${hidden} → 출력 1개 (은닉 뉴런 합계 ${layers * neurons}개)`;
+      root.querySelector('[data-arch]')!.textContent = `입력 2개 → ${hidden}${layers ? ` (${act === 'relu' ? 'ReLU' : 'tanh'})` : ''} → 출력 1개 (은닉 뉴런 합계 ${layers * neurons}개)`;
       root.querySelector('[data-epoch]')!.textContent = '0';
       root.querySelector('[data-loss]')!.textContent = '-';
       root.querySelector('[data-acc]')!.textContent = '-';
@@ -253,6 +260,7 @@
         }));
     pick('data-ds', (v) => { ds = v; data = makeData(ds); });
     pick('data-layers', (v) => { layers = parseInt(v); });
+    pick('data-act', (v) => { act = v; });
     root.querySelector<HTMLInputElement>('[data-neurons]')!.addEventListener('input', (e) => {
       neurons = parseInt((e.target as HTMLInputElement).value);
       root.querySelector('[data-nout]')!.textContent = String(neurons);

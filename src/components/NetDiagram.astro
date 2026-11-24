@@ -1,41 +1,48 @@
 ---
-// 숫자 인식 신경망 구조도: 784 → 128 → 64 → 10
-const cols = [
-  { x: 70, n: 7, label: '입력층', size: '784개', note: '픽셀 밝기' },
-  { x: 250, n: 6, label: '은닉층 1', size: '128개', note: 'ReLU' },
-  { x: 410, n: 5, label: '은닉층 2', size: '64개', note: 'ReLU' },
-  { x: 570, n: 10, label: '출력층', size: '10개', note: 'softmax' },
-];
-const H = 300, top = 40;
-const ys = (n: number) => Array.from({ length: n }, (_, i) => top + ((i + 0.5) * (H - top - 20)) / n);
-// 연결선 색: 양수/음수 가중치를 흉내 낸 고정 무늬
+// 신경망 구조도. 층마다 이름, 노드 수, 활성화 함수를 적는다.
+// 노드 수가 많은 층은 일부만 그리고 ⋮로 줄인다.
+interface Layer { label: string; size: number; note?: string; inputs?: string[] }
+interface Props {
+  layers: Layer[];
+  outputs?: string[];    // 출력 노드 이름
+  hot?: number;          // 강조할 출력 노드 번호
+  caption: string;
+}
+const { layers, outputs = [], hot, caption } = Astro.props;
+const W = 660, H = 360, top = 44, bottom = 300;
+const MAX = 6;
+const cols = layers.map((l, ci) => {
+  const x = 70 + (ci * (W - 170)) / (layers.length - 1);
+  const shown = Math.min(l.size, ci === layers.length - 1 && l.size <= 10 ? 10 : MAX);
+  const gap = l.size > shown ? Math.floor(shown / 2) : -1; // ⋮ 위치
+  const slots = l.size > shown ? shown + 1 : shown;
+  const ys = Array.from({ length: slots }, (_, i) => top + ((i + 0.5) * (bottom - top)) / slots);
+  return { ...l, x, ys, gap };
+});
 const sign = (a: number, b: number) => ((a * 7 + b * 3) % 5 < 3 ? 'p' : 'n');
-// 생략 기호(⋮) 자리는 연결선을 긋지 않는다
-const isGap = (ci: number, i: number) => (ci === 0 && i === 3) || (ci > 0 && ci < 3 && i === Math.floor(cols[ci].n / 2));
 ---
-<figure class="nd wide">
-  <svg viewBox="0 0 660 360" role="img" aria-label="입력층 784개, 은닉층 128개와 64개, 출력층 10개로 이루어진 신경망. 모든 노드는 다음 층의 모든 노드와 연결된다.">
+<figure class="nd">
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={caption}>
     {cols.slice(0, -1).map((c, ci) => {
       const d = cols[ci + 1];
-      return ys(c.n).flatMap((y1, i) => isGap(ci, i) ? [] : ys(d.n).flatMap((y2, j) => isGap(ci + 1, j) ? [] : [
+      return c.ys.flatMap((y1, i) => i === c.gap ? [] : d.ys.flatMap((y2, j) => j === d.gap ? [] : [
         <line x1={c.x} y1={y1} x2={d.x} y2={y2} class={`e ${sign(i + ci, j)}`} />
       ]));
     })}
     {cols.map((c, ci) => (
       <g>
-        {ys(c.n).map((y, i) => (
-          ci === 0 && i === 3 ? <text x={c.x} y={y + 5} class="dots">⋮</text> :
-          ci > 0 && ci < 3 && i === Math.floor(c.n / 2) ? <text x={c.x} y={y + 5} class="dots">⋮</text> :
-          <circle cx={c.x} cy={y} r={ci === 3 ? 8 : 9} class={ci === 3 && i === 7 ? 'node hot' : 'node'} />
-        ))}
-        <text x={c.x} y="22" class="lbl">{c.label}</text>
-        <text x={c.x} y="318" class="size">{c.size}</text>
-        <text x={c.x} y="340" class="note">{c.note}</text>
+        {c.ys.map((y, i) => i === c.gap
+          ? <text x={c.x} y={y + 6} class="dots">⋮</text>
+          : <circle cx={c.x} cy={y} r="9" class={ci === cols.length - 1 && i === hot ? 'node hot' : 'node'} />)}
+        {c.inputs && c.ys.map((y, i) => i !== c.gap && c.inputs![i] ? <text x={c.x - 16} y={y + 4} class="tag end">{c.inputs![i]}</text> : null)}
+        <text x={c.x} y="24" class="lbl">{c.label}</text>
+        <text x={c.x} y="322" class="size">{c.size}개</text>
+        {c.note && <text x={c.x} y="342" class="note">{c.note}</text>}
       </g>
     ))}
-    {ys(10).map((y, i) => <text x="592" y={y + 4} class="digit">{i}</text>)}
+    {outputs.map((o, i) => <text x={cols[cols.length - 1].x + 16} y={cols[cols.length - 1].ys[i] + 4} class="tag">{o}</text>)}
   </svg>
-  <figcaption>출력층의 10개 노드는 각각 0~9일 확률이다. 가장 큰 값(그림에서는 7)이 신경망의 답이 된다. 선의 파랑과 빨강은 가중치가 양수인지 음수인지를 나타낸다.</figcaption>
+  <figcaption>{caption}</figcaption>
 </figure>
 
 <style>
@@ -50,6 +57,7 @@ const isGap = (ci: number, i: number) => (ci === 0 && i === 3) || (ci > 0 && ci 
   .lbl { font-size: 14px; font-weight: 700; text-anchor: middle; fill: var(--ink); font-family: var(--font); }
   .size { font-size: 14px; font-weight: 800; text-anchor: middle; fill: var(--ink); font-family: var(--font); }
   .note { font-size: 12px; text-anchor: middle; fill: var(--muted); font-family: var(--font); }
-  .digit { font-size: 11px; fill: var(--muted); font-family: var(--font); }
+  .tag { font-size: 12px; fill: var(--ink-2); font-family: var(--font); }
+  .tag.end { text-anchor: end; }
   figcaption { font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem; max-width: var(--measure); }
 </style>

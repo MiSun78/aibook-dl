@@ -1,7 +1,7 @@
 ---
 import '../styles/global.css';
 import { SITE } from '../config';
-import { LESSONS } from '../data/lessons';
+import { UNITS } from '../data/lessons';
 
 interface Props {
   title?: string;
@@ -12,7 +12,7 @@ const pageTitle = title ? `${title} | ${SITE.title}` : SITE.title;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 <!doctype html>
-<html lang="ko" data-track="6">
+<html lang="ko">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -20,13 +20,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     <meta name="description" content="고등학교 인공지능 기초 '인공 신경망과 딥러닝' 단원을 이론과 실습으로 함께 배우는 디지털 교과서" />
     <link rel="icon" href={`${base}/favicon.svg`} type="image/svg+xml" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
-    <script is:inline>
-      // 4차시/6차시 경로를 페이지가 그려지기 전에 적용
-      try {
-        var t = localStorage.getItem('aibook-track');
-        if (t === '4' || t === '6') document.documentElement.dataset.track = t;
-      } catch (e) {}
-    </script>
   </head>
   <body>
     <a class="skip" href="#main">본문으로 건너뛰기</a>
@@ -50,24 +43,16 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
           </span>
         </a>
 
-        <div class="track" role="group" aria-label="우리 반 수업 차시">
-          <span class="track-label">우리 반은</span>
-          <div class="track-switch">
-            <button type="button" data-set-track="6">6차시</button>
-            <button type="button" data-set-track="4">4차시</button>
-          </div>
-        </div>
-
         <nav>
+          <p class="nav-cap">Ⅱ-03 인공 신경망과 딥러닝</p>
           <ol class="lesson-nav">
-            {LESSONS.map((l) => (
-              <li class:list={[{ current: current === l.slug, pending: !l.ready }]}>
-                <a href={`${base}/lessons/${l.slug}/`} aria-current={current === l.slug ? 'page' : undefined}>
-                  <span class="ln-no">{l.n}</span>
+            {UNITS.map((u) => (
+              <li class:list={[{ current: current === String(u.n), pending: !u.ready }]}>
+                <a href={`${base}/lessons/${u.n}/`} aria-current={current === String(u.n) ? 'page' : undefined}>
+                  <span class="ln-no">{u.code}</span>
                   <span class="ln-text">
-                    <span class="ln-title">{l.title}</span>
-                    <span class="ln-four">4차시 반: {l.four}</span>
-                    {!l.ready && <span class="ln-soon">준비 중</span>}
+                    <span class="ln-title">{u.title}</span>
+                    <span class="ln-pages">교과서 {u.pages}{!u.ready && ', 준비 중'}</span>
                   </span>
                 </a>
               </li>
@@ -86,10 +71,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       </main>
     </div>
 
-    <script>
-      import { initTrack } from '../scripts/track';
-      initTrack();
-    </script>
   </body>
 </html>
 
@@ -118,32 +99,22 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   .brand-name { display: block; font-weight: 800; font-size: 1.05rem; letter-spacing: -0.02em; line-height: 1.3; }
   .brand-sub { display: block; font-size: 0.82rem; color: var(--muted); line-height: 1.3; }
 
-  .track { display: flex; align-items: center; gap: 0.6rem; font-size: 0.88rem; }
-  .track-label { color: var(--muted); white-space: nowrap; }
-  .track-switch { display: inline-flex; border: 1.5px solid var(--ink); border-radius: var(--radius-s); overflow: hidden; }
-  .track-switch button {
-    border: 0; border-radius: 0; background: transparent; color: var(--ink);
-    padding: 0.25em 0.8em; font-size: 0.88rem;
-  }
-  .track-switch button[aria-pressed='true'] { background: var(--ink); color: #fff; }
-
+  .nav-cap { font-size: 0.82rem; font-weight: 650; color: var(--muted); margin: 0 0 0.4rem 0.5rem; }
   .lesson-nav { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.15rem; }
   .lesson-nav li { margin: 0; }
   .lesson-nav a {
-    display: grid; grid-template-columns: 1.8rem 1fr; gap: 0.4rem;
+    display: grid; grid-template-columns: 2.6rem 1fr; gap: 0.3rem;
     padding: 0.55rem 0.5rem; border-radius: var(--radius-s);
     text-decoration: none; color: var(--ink); line-height: 1.35;
   }
   .lesson-nav a:hover { background: var(--paper); }
   .lesson-nav li.current a { background: var(--ink); color: #fff; }
-  .lesson-nav li.current .ln-four, .lesson-nav li.current .ln-soon { color: #c9d0de; }
-  .ln-no { font-weight: 800; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+  .lesson-nav li.current .ln-pages { color: #c9d0de; }
+  .ln-no { font-weight: 800; font-size: 0.92rem; font-variant-numeric: tabular-nums; padding-top: 0.05rem; }
   .ln-title { display: block; font-weight: 650; font-size: 0.95rem; }
-  .ln-four { display: none; font-size: 0.78rem; color: var(--muted); }
-  .ln-soon { display: block; font-size: 0.78rem; color: var(--muted); }
+  .ln-pages { display: block; font-size: 0.78rem; color: var(--muted); }
   .lesson-nav li.pending .ln-title { color: var(--muted); }
   .lesson-nav li.current.pending .ln-title { color: #fff; }
-  :global(html[data-track='4']) .ln-four { display: block; }
 
   .teacher-link { margin-top: auto; font-size: 0.9rem; color: var(--ink-2); }
   .teacher-link.current { font-weight: 700; }

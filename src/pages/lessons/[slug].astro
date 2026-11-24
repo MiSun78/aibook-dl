@@ -1,43 +1,41 @@
 ---
-// 준비 중인 차시: 활동 계획만 보여 준다.
+// 준비 중인 소단원: 교과서 차례만 보여 준다.
 import Base from '../../layouts/Base.astro';
-import { LESSONS } from '../../data/lessons';
-import { OUTLINES } from '../../data/outlines';
+import { UNITS } from '../../data/lessons';
 
 export function getStaticPaths() {
-  return LESSONS.filter((l) => !l.ready).map((l) => ({ params: { slug: l.slug } }));
+  return UNITS.filter((u) => !u.ready).map((u) => ({ params: { slug: String(u.n) } }));
 }
 const { slug } = Astro.params;
-const lesson = LESSONS.find((l) => l.slug === slug)!;
-const outline = OUTLINES[slug as string];
+const unit = UNITS.find((u) => String(u.n) === slug)!;
 ---
-<Base title={`${lesson.n}차시 ${lesson.title}`} current={lesson.slug}>
+<Base title={`${unit.code} ${unit.title}`} current={String(unit.n)}>
   <header class="oh">
-    <p class="oh-meta">{lesson.n}차시, 준비 중</p>
-    <h1>{lesson.title}</h1>
-    <p class="oh-q">{lesson.question}</p>
+    <p class="oh-meta">Ⅱ-03 인공 신경망과 딥러닝</p>
+    <h1><span class="oh-code">{unit.code}</span> {unit.title}</h1>
+    <p class="oh-pages">교과서 {unit.pages}</p>
   </header>
   <section class="oh-body">
-    <p>이 차시는 아직 만들고 있습니다. 아래는 수업에서 할 활동 계획입니다.</p>
-    <ol class="plan">
-      {outline.plan.map(([k, v]) => (
-        <li><strong>{k}</strong><span>{v}</span></li>
+    <p>이 단원은 준비 중입니다. 교과서 차례에 맞춰 아래 순서로 만들어집니다.</p>
+    <ol class="toc">
+      {unit.sections.map((s) => (
+        <li>
+          <span>{s.kind && <strong>{s.kind}: </strong>}{s.title}</span>
+          <span class="toc-p">{s.pages}</span>
+        </li>
       ))}
     </ol>
-    <p class="oh-four">{outline.four}</p>
-    <p class="oh-std">성취기준 [{lesson.standard}]</p>
+    <p class="oh-std">학습 목표: {unit.goals.join(' ')}<br />성취기준 [{unit.standard}]</p>
   </section>
 </Base>
 
 <style>
   .oh { max-width: var(--wide); }
   .oh-meta { color: var(--muted); font-weight: 650; margin-bottom: 0.3rem; }
-  .oh-q { font-size: 1.25rem; color: var(--ink-2); margin-top: 0.6rem; }
+  .oh-code { color: var(--muted); font-weight: 800; }
+  .oh-pages { font-size: 1.05rem; font-weight: 650; color: var(--ink-2); margin-top: 0.4rem; }
   .oh-body { max-width: var(--measure); margin-top: 2rem; padding-top: 1.2rem; border-top: 2px solid var(--ink); }
-  .plan { padding-left: 1.4em; }
-  .plan li { margin-bottom: 0.8rem; }
-  .plan strong { display: block; }
-  .oh-four { display: none; background: var(--fire-soft); padding: 0.7rem 1rem; border-radius: var(--radius-m); }
-  :global(html[data-track='4']) .oh-four { display: block; }
-  .oh-std { color: var(--muted); font-size: 0.92rem; }
+  .toc li { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 0.4rem; }
+  .toc-p { color: var(--muted); white-space: nowrap; }
+  .oh-std { color: var(--muted); font-size: 0.92rem; margin-top: 1.5rem; }
 </style>

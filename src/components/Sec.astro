@@ -1,0 +1,41 @@
+---
+// 교과서의 한 절. 제목 옆에 교과서 쪽수와 활동 번호를 붙인다.
+interface Props {
+  id: string;
+  title: string;
+  pages: string;     // 예: '127쪽'
+  kind?: string;     // 예: '활동 7', '실습 5', '더 알아보기', '예제'
+  extra?: boolean;   // 교과서에 없는, 이 사이트에서 더한 활동
+}
+const { id, title, pages, kind, extra } = Astro.props;
+---
+<section class:list={['sec', { 'sec-activity': !!kind || extra }]} id={id}>
+  <div class="sec-head">
+    <h2 class="sec-title">
+      {kind && <span class="sec-kind">{kind}</span>}
+      {extra && <span class="sec-kind extra">교과서 밖 활동</span>}
+      <span>{title}</span>
+    </h2>
+    <span class="sec-pages">교과서 {pages}</span>
+  </div>
+  <div class="sec-body"><slot /></div>
+</section>
+
+<style>
+  .sec { margin: 3rem 0 0; max-width: var(--wide); }
+  .sec-head {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
+    border-top: 2px solid var(--ink); padding-top: 0.9rem; margin-bottom: 1rem;
+  }
+  .sec-activity .sec-head { border-top-color: var(--fire); }
+  .sec-title { font-size: 1.4rem; font-weight: 760; margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.6rem; }
+  .sec-kind {
+    font-size: 0.85rem; font-weight: 750; color: var(--ink);
+    background: var(--fire-soft); border: 1.5px solid var(--fire); border-radius: 999px;
+    padding: 0.05rem 0.65rem; white-space: nowrap;
+  }
+  .sec-kind.extra { background: #eef1f6; border-color: var(--line-strong); color: var(--ink-2); }
+  .sec-pages { flex: none; font-size: 0.9rem; font-weight: 650; color: var(--muted); white-space: nowrap; }
+  .sec-body > :global(*) { max-width: var(--measure); }
+  .sec-body > :global(.widget), .sec-body > :global(.wide), .sec-body > :global(figure) { max-width: var(--wide); }
+</style>

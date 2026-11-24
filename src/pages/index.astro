@@ -1,42 +1,40 @@
 ---
 import Base from '../layouts/Base.astro';
 import DrawPad from '../components/DrawPad.astro';
-import { LESSONS } from '../data/lessons';
+import { UNITS } from '../data/lessons';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 <Base current="home">
   <section class="hero">
     <div class="hero-text">
       <h1>숫자를 써 보세요.<br />신경망이<br />맞혀 봅니다.</h1>
-      <p class="lead">이 신경망은 손글씨 숫자 수천 장을 보고 스스로 배웠습니다. 규칙을 알려 준 사람은 없습니다. 어떻게 이런 일이 가능한지, 그리고 언제 틀리는지 이번 단원에서 직접 확인합니다.</p>
+      <p class="lead">이 신경망은 손글씨 숫자 수천 장을 보고 스스로 배웠습니다. 어떻게 이런 일이 가능한지 교과서 Ⅱ-03 '인공 신경망과 딥러닝'에서 배웁니다.</p>
     </div>
     <DrawPad variant="hero" />
   </section>
 
-  <section class="mission">
-    <h2>우리 반 AI 연구소의 과제</h2>
-    <p>단원을 마칠 때까지 연구원으로서 세 가지를 남깁니다. 마지막 차시에 결과를 발표합니다.</p>
-    <ol class="mission-list">
-      <li><strong>숫자 인식기 실험 보고</strong>: 신경망을 학습시키고 성능을 평가한 기록, AI가 틀린 숫자와 그 이유</li>
-      <li><strong>이미지 분류기</strong>: 사전 학습 모델로 우리 주변 문제를 푸는 분류기와 혼동 행렬 해석</li>
-      <li><strong>딥러닝 해결 제안서</strong>: 딥러닝으로 풀 수 있는 생활 속 문제, 쓸 기술, 성능을 확인할 방법과 한계</li>
-    </ol>
+  <section class="how">
+    <h2>이 디지털 교과서 쓰는 법</h2>
+    <ul>
+      <li>종이 교과서와 같은 순서로 되어 있습니다. 각 제목 오른쪽에 <strong>교과서 쪽수</strong>가 있습니다.</li>
+      <li>교과서의 활동, 실습, 더 알아보기는 제목 앞에 <span class="chip">활동 7</span>처럼 표시되어 있습니다.</li>
+      <li>실습 코드는 <strong>코랩에서 열기</strong> 버튼으로 엽니다. 구글 계정 로그인이 필요합니다.</li>
+      <li>단원 끝의 정리하기에 적은 내용은 이 기기에만 저장됩니다.</li>
+    </ul>
   </section>
 
-  <section class="lessons">
-    <h2>차시 안내</h2>
-    <p class="lessons-help">왼쪽 위에서 우리 반 차시 수를 고르면, 4차시 반이 각 차시를 언제 배우는지 함께 보입니다.</p>
-    <ol class="lesson-cards">
-      {LESSONS.map((l) => (
-        <li class:list={{ pending: !l.ready }}>
-          <a href={`${base}/lessons/${l.slug}/`}>
-            <span class="lc-no">{l.n}</span>
-            <span class="lc-body">
-              <span class="lc-title">{l.title}</span>
-              <span class="lc-q">{l.question}</span>
-              <span class="lc-four">4차시 반: {l.four}</span>
+  <section class="units">
+    <h2>차례</h2>
+    <ol class="unit-list">
+      {UNITS.map((u) => (
+        <li class:list={{ pending: !u.ready }}>
+          <a href={`${base}/lessons/${u.n}/`}>
+            <span class="u-code">{u.code}</span>
+            <span class="u-body">
+              <span class="u-title">{u.title}</span>
+              <span class="u-secs">{u.sections.map((s) => (s.kind ? `${s.kind} ` : '') + s.title).join(' / ')}</span>
             </span>
-            {!l.ready && <span class="lc-soon">준비 중</span>}
+            <span class="u-pages">{u.pages}{!u.ready && <><br />준비 중</>}</span>
           </a>
         </li>
       ))}
@@ -51,27 +49,19 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   }
   .hero h1 { font-size: clamp(2rem, 3.6vw, 2.8rem); font-weight: 850; letter-spacing: -0.035em; line-height: 1.2; }
   .lead { font-size: 1.05rem; color: var(--ink-2); margin-top: 1.2rem; }
-  .mission, .lessons { max-width: var(--wide); margin-top: 3rem; }
-  .mission h2, .lessons h2 { margin-bottom: 0.6rem; }
-  .mission > p { max-width: var(--measure); }
-  .mission-list { max-width: var(--measure); }
-  .mission-list li { margin-bottom: 0.4rem; }
-  .lessons-help { color: var(--muted); font-size: 0.95rem; }
-  .lesson-cards { list-style: none; padding: 0; margin: 1rem 0 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; border-top: 1px solid var(--line); }
-  .lesson-cards li { margin: 0; border-bottom: 1px solid var(--line); }
-  .lesson-cards li:nth-child(odd) { border-right: 1px solid var(--line); }
-  .lesson-cards a { display: grid; grid-template-columns: 2.6rem 1fr auto; gap: 0.6rem; padding: 1.1rem 1rem; text-decoration: none; color: var(--ink); height: 100%; }
-  .lesson-cards a:hover { background: var(--surface); }
-  .lc-no { font-size: 2rem; font-weight: 850; line-height: 1; font-variant-numeric: tabular-nums; }
-  .lc-title { display: block; font-weight: 750; font-size: 1.05rem; }
-  .lc-q { display: block; color: var(--ink-2); font-size: 0.93rem; line-height: 1.5; margin-top: 0.2rem; }
-  .lc-four { display: none; color: var(--muted); font-size: 0.85rem; margin-top: 0.3rem; }
-  :global(html[data-track='4']) .lc-four { display: block; }
-  .lc-soon { font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
-  .lesson-cards li.pending .lc-no, .lesson-cards li.pending .lc-title { color: var(--muted); }
-  @media (max-width: 900px) {
-    .hero { grid-template-columns: 1fr; }
-    .lesson-cards { grid-template-columns: 1fr; }
-    .lesson-cards li:nth-child(odd) { border-right: 0; }
-  }
+  .how, .units { max-width: var(--wide); margin-top: 3rem; }
+  .how h2, .units h2 { margin-bottom: 0.7rem; }
+  .how ul { max-width: var(--measure); }
+  .chip { font-size: 0.85rem; font-weight: 750; background: var(--fire-soft); border: 1.5px solid var(--fire); border-radius: 999px; padding: 0 0.55rem; }
+  .unit-list { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--line); }
+  .unit-list li { margin: 0; border-bottom: 1px solid var(--line); }
+  .unit-list a { display: grid; grid-template-columns: 4rem 1fr auto; gap: 1rem; padding: 1.1rem 0.6rem; text-decoration: none; color: var(--ink); }
+  .unit-list a:hover { background: var(--surface); }
+  .u-code { font-size: 1.3rem; font-weight: 850; font-variant-numeric: tabular-nums; }
+  .u-title { display: block; font-weight: 760; font-size: 1.12rem; }
+  .u-secs { display: block; color: var(--ink-2); font-size: 0.9rem; line-height: 1.6; margin-top: 0.25rem; }
+  .u-pages { color: var(--muted); font-size: 0.9rem; text-align: right; white-space: nowrap; }
+  .unit-list li.pending .u-code, .unit-list li.pending .u-title { color: var(--muted); }
+  @media (max-width: 900px) { .hero { grid-template-columns: 1fr; } }
+  @media (max-width: 600px) { .unit-list a { grid-template-columns: 3.2rem 1fr; } .u-pages { grid-column: 2; text-align: left; } }
 </style>

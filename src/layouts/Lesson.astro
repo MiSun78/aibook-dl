@@ -1,33 +1,39 @@
 ---
 import Base from './Base.astro';
-import { LESSONS } from '../data/lessons';
+import { UNITS } from '../data/lessons';
 
-interface Props {
-  n: number;
-  goals: string[];
-  minutes?: string;
-}
-const { n, goals, minutes } = Astro.props;
-const lesson = LESSONS.find((l) => l.n === n)!;
-const prev = LESSONS.find((l) => l.n === n - 1);
-const next = LESSONS.find((l) => l.n === n + 1);
+interface Props { n: number; ids: string[]; }
+const { n, ids } = Astro.props;
+const unit = UNITS.find((u) => u.n === n)!;
+const prev = UNITS.find((u) => u.n === n - 1);
+const next = UNITS.find((u) => u.n === n + 1);
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
-<Base title={`${n}차시 ${lesson.title}`} current={lesson.slug}>
+<Base title={`${unit.code} ${unit.title}`} current={String(n)}>
   <header class="lesson-head">
-    <p class="lh-meta">{n}차시{minutes ? `, ${minutes}` : ''}</p>
-    <h1>{lesson.title}</h1>
-    <p class="lh-q">{lesson.question}</p>
+    <p class="lh-meta">Ⅱ-03 인공 신경망과 딥러닝</p>
+    <h1><span class="lh-code">{unit.code}</span> {unit.title}</h1>
+    <p class="lh-pages">교과서 {unit.pages}</p>
     <div class="lh-grid">
       <div>
-        <h2 class="lh-sub">이번 시간에 할 수 있게 되는 것</h2>
-        <ul>{goals.map((g) => <li>{g}</li>)}</ul>
+        <h2 class="lh-sub">학습 목표</h2>
+        <ul>{unit.goals.map((g) => <li>{g}</li>)}</ul>
+        <p class="lh-std">성취기준 [{unit.standard}]</p>
       </div>
-      <div class="lh-std">
-        <h2 class="lh-sub">성취기준</h2>
-        <p>[{lesson.standard}]</p>
-        <p class="lh-four">4차시 반은 <strong>{lesson.four}</strong>에 배웁니다. 접힌 활동은 건너뛰어도 됩니다.</p>
-      </div>
+      <nav aria-label="이 단원의 차례">
+        <h2 class="lh-sub">이 단원의 차례</h2>
+        <ol class="toc">
+          {unit.sections.map((s, i) => (
+            <li>
+              <a href={`#${ids[i]}`}>
+                {s.kind && <span class="toc-kind">{s.kind}</span>}{s.title}
+              </a>
+              <span class="toc-p">{s.pages}</span>
+            </li>
+          ))}
+          <li><a href="#wrap">정리하기</a><span class="toc-p" /></li>
+        </ol>
+      </nav>
     </div>
   </header>
 
@@ -35,32 +41,39 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     <slot />
   </article>
 
-  <nav class="pager" aria-label="차시 이동">
-    {prev ? <a href={`${base}/lessons/${prev.slug}/`}>이전 차시: {prev.title}</a> : <span />}
-    {next ? <a href={`${base}/lessons/${next.slug}/`}>다음 차시: {next.title}</a> : <span />}
+  <nav class="pager" aria-label="단원 이동">
+    {prev ? <a href={`${base}/lessons/${prev.n}/`}>이전: {prev.code} {prev.title}</a> : <span />}
+    {next ? <a href={`${base}/lessons/${next.n}/`}>다음: {next.code} {next.title}</a> : <span />}
   </nav>
 </Base>
 
 <style>
-  .lesson-head { max-width: var(--wide); padding-bottom: 0.4rem; }
+  .lesson-head { max-width: var(--wide); }
   .lh-meta { color: var(--muted); font-weight: 650; margin-bottom: 0.3rem; }
-  .lh-q { font-size: 1.25rem; color: var(--ink-2); margin: 0.6rem 0 1.6rem; max-width: var(--measure); }
+  .lh-code { color: var(--muted); font-weight: 800; }
+  .lh-pages { font-size: 1.05rem; font-weight: 650; color: var(--ink-2); margin: 0.4rem 0 1.4rem; }
   .lh-grid {
-    display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.5rem;
+    display: grid; grid-template-columns: 1fr 1.15fr; gap: 1.6rem;
     background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m);
     padding: 1.1rem 1.3rem;
   }
   .lh-sub { font-size: 0.95rem; font-weight: 750; color: var(--ink-2); margin-bottom: 0.3rem; }
-  .lh-grid ul { margin: 0; }
-  .lh-std p { margin: 0 0 0.4rem; }
-  .lh-four { display: none; font-size: 0.92rem; color: var(--ink-2); }
-  :global(html[data-track='4']) .lh-four { display: block; }
+  .lh-grid ul { margin-bottom: 0.5rem; }
+  .lh-std { color: var(--muted); font-size: 0.9rem; margin: 0; }
+  .toc { margin: 0; padding-left: 1.3em; font-size: 0.93rem; }
+  .toc li { display: flex; justify-content: space-between; gap: 0.8rem; margin: 0.15rem 0; }
+  .toc li::marker { color: var(--muted); }
+  .toc a { color: var(--ink); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc-kind { font-weight: 750; margin-right: 0.35rem; color: var(--ink-2); }
+  .toc-kind::after { content: ':'; }
+  .toc-p { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
   .pager {
     display: flex; justify-content: space-between; gap: 1rem;
     max-width: var(--wide); margin-top: 4rem; padding-top: 1.2rem; border-top: 1px solid var(--line);
     font-weight: 650;
   }
-  @media (max-width: 700px) {
+  @media (max-width: 760px) {
     .lh-grid { grid-template-columns: 1fr; }
     .pager { flex-direction: column; }
   }
