@@ -1,0 +1,24 @@
+---
+import './fig.css';
+---
+<figure class="fg">
+  <svg viewBox="0 0 460 200" role="img" aria-label="상자그림: 상자는 1사분위수에서 3사분위수까지, 가운데 선은 중앙값, 수염은 기준 안의 가장 작은 값과 큰 값까지 그리고, 기준(Q1 − 1.5×IQR, Q3 + 1.5×IQR)을 벗어난 값은 점으로 표시한 이상치이다">
+    <line x1="40" y1="90" x2="140" y2="90" stroke="#172038" stroke-width="2" />
+    <line x1="300" y1="90" x2="380" y2="90" stroke="#172038" stroke-width="2" />
+    <line x1="40" y1="74" x2="40" y2="106" stroke="#172038" stroke-width="2" />
+    <line x1="380" y1="74" x2="380" y2="106" stroke="#172038" stroke-width="2" />
+    <rect x="140" y="60" width="160" height="60" fill="#e3ecfd" stroke="#2563eb" stroke-width="2" />
+    <line x1="210" y1="60" x2="210" y2="120" stroke="#172038" stroke-width="3" />
+    <circle cx="420" cy="90" r="6" fill="#fff" stroke="#e0464e" stroke-width="2.5" />
+    <circle cx="440" cy="90" r="6" fill="#fff" stroke="#e0464e" stroke-width="2.5" />
+    <text x="140" y="48" class="t c">Q1</text><text x="210" y="48" class="t c">중앙값(Q2)</text><text x="300" y="48" class="t c">Q3</text>
+    <text x="430" y="70" class="t c" style="fill:#e0464e;font-weight:700">이상치</text>
+    <path d="M140 132 v8 h160 v-8" fill="none" stroke="#2563eb" stroke-width="1.5" />
+    <text x="220" y="156" class="t c" style="fill:#2563eb">IQR = Q3 − Q1</text>
+    <path d="M40 112 v32" stroke="#5b6478" stroke-dasharray="3 3" /><path d="M380 112 v32" stroke="#5b6478" stroke-dasharray="3 3" />
+    <text x="40" y="160" class="ts c">수염 끝</text>
+    <text x="380" y="160" class="ts c">수염 끝</text>
+    <text x="230" y="186" class="ts c">이상치 기준: Q1 − 1.5×IQR 보다 작거나, Q3 + 1.5×IQR 보다 큰 값</text>
+  </svg>
+  <figcaption>수염은 기준 안에 있는 가장 작은 값과 가장 큰 값까지 그린다. 기준을 벗어난 값은 점으로 따로 표시한다.</figcaption>
+</figure>

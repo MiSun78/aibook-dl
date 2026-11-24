@@ -1,0 +1,78 @@
+---
+// 상자그림과 IQR로 이상치 찾기
+---
+<div class="widget pb" data-penguinbox>
+  <p class="widget-title">상자그림으로 이상치 찾기</p>
+  <p class="widget-help">속성을 고르면 상자그림을 그리고, 사분위수와 IQR로 이상치 기준을 계산합니다. 결측치는 지운 데이터입니다. '종별로 보기'를 켜면 종마다 따로 계산합니다.</p>
+  <div class="pb-ctl">
+    <label>속성 <select data-attr>
+      <option value="culmen_length_mm">부리 길이</option>
+      <option value="culmen_depth_mm">부리 깊이</option>
+      <option value="flipper_length_mm">날개 길이</option>
+      <option value="body_mass_g" selected>체질량</option>
+    </select></label>
+    <label><input type="checkbox" data-by checked /> 종별로 보기</label>
+  </div>
+  <svg class="pb-svg" data-svg viewBox="0 0 640 200" role="img" aria-label="상자그림"></svg>
+  <div class="pb-calc" data-calc aria-live="polite"></div>
+</div>
+
+<style>
+  .pb-ctl { display: flex; gap: 1.2rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.6rem; font-size: 0.92rem; }
+  .pb-ctl select { font: inherit; padding: 0.25rem 0.4rem; border-radius: 6px; border: 1.5px solid var(--line-strong); }
+  .pb-svg { width: 100%; height: auto; display: block; background: var(--surface); border-radius: var(--radius-s); }
+  .pb-calc { margin-top: 0.7rem; font-size: 0.9rem; display: grid; gap: 0.5rem; }
+  .pb-calc :global(p) { margin: 0; }
+  .pb-calc :global(b.o) { color: var(--neg); }
+</style>
+
+<script>
+  import { loadPenguins, KO, UNIT, SPECIES, SP_KO, SP_COLOR, quantile, col, fmt } from '../scripts/penguins';
+  document.querySelectorAll<HTMLElement>('[data-penguinbox]').forEach(async (root) => {
+    const rows = (await loadPenguins()).map((r, i) => [i, r] as const).filter(([, r]) => r.slice(0, 6).every((v) => v !== null));
+    const attr = root.querySelector<HTMLSelectElement>('[data-attr]')!;
+    const by = root.querySelector<HTMLInputElement>('[data-by]')!;
+    const svg = root.querySelector<SVGSVGElement>('[data-svg]')!;
+    const calc = root.querySelector<HTMLElement>('[data-calc]')!;
+
+    function draw() {
+      const k = col(attr.value);
+      const groups = by.checked ? SPECIES.map((s) => ({ name: SP_KO[s], color: SP_COLOR[s], d: rows.filter(([, r]) => r[0] === s) })) : [{ name: '전체', color: '#5b6478', d: rows }];
+      const allv = rows.map(([, r]) => r[k] as number);
+      const lo = Math.min(...allv), hi = Math.max(...allv), pad = (hi - lo) * 0.06;
+      const L = 90, R = 620, x = (v: number) => L + ((v - (lo - pad)) / (hi - lo + 2 * pad)) * (R - L);
+      const H = 200, rowH = (H - 40) / groups.length;
+      let s = '';
+      const ticks = 6;
+      for (let t = 0; t <= ticks; t++) {
+        const v = lo - pad + ((hi - lo + 2 * pad) * t) / ticks;
+        s += `<line x1="${x(v)}" y1="10" x2="${x(v)}" y2="${H - 28}" stroke="#dde1e8"/><text x="${x(v)}" y="${H - 12}" font-size="11" text-anchor="middle" fill="#5b6478">${fmt(Math.round(v * 10) / 10, 1)}</text>`;
+      }
+      const info: string[] = [];
+      groups.forEach((g, gi) => {
+        const v = g.d.map(([, r]) => r[k] as number).sort((a, b) => a - b);
+        const q1 = quantile(v, 0.25), q2 = quantile(v, 0.5), q3 = quantile(v, 0.75), iqr = q3 - q1;
+        const lf = q1 - 1.5 * iqr, uf = q3 + 1.5 * iqr;
+        const inside = v.filter((a) => a >= lf && a <= uf);
+        const wl = Math.min(...inside), wh = Math.max(...inside);
+        const outs = g.d.filter(([, r]) => (r[k] as number) < lf || (r[k] as number) > uf);
+        const cy = 14 + rowH * gi + rowH / 2, bh = Math.min(34, rowH * 0.55);
+        s += `<text x="${L - 10}" y="${cy + 4}" font-size="13" font-weight="700" text-anchor="end" fill="#172038">${g.name}</text>`;
+        s += `<line x1="${x(wl)}" y1="${cy}" x2="${x(q1)}" y2="${cy}" stroke="#172038" stroke-width="1.5"/><line x1="${x(q3)}" y1="${cy}" x2="${x(wh)}" y2="${cy}" stroke="#172038" stroke-width="1.5"/>`;
+        s += `<line x1="${x(wl)}" y1="${cy - bh / 3}" x2="${x(wl)}" y2="${cy + bh / 3}" stroke="#172038" stroke-width="1.5"/><line x1="${x(wh)}" y1="${cy - bh / 3}" x2="${x(wh)}" y2="${cy + bh / 3}" stroke="#172038" stroke-width="1.5"/>`;
+        s += `<rect x="${x(q1)}" y="${cy - bh / 2}" width="${x(q3) - x(q1)}" height="${bh}" fill="${g.color}" fill-opacity="0.25" stroke="${g.color}" stroke-width="2"/>`;
+        s += `<line x1="${x(q2)}" y1="${cy - bh / 2}" x2="${x(q2)}" y2="${cy + bh / 2}" stroke="#172038" stroke-width="2.5"/>`;
+        outs.forEach(([, r]) => { s += `<circle cx="${x(r[k] as number)}" cy="${cy}" r="4.5" fill="#fff" stroke="#e0464e" stroke-width="2"/>`; });
+        const u = UNIT[attr.value];
+        info.push(`<p><b>${g.name}</b>: Q1 = ${fmt(q1)}, Q3 = ${fmt(q3)}, IQR = ${fmt(q3)} − ${fmt(q1)} = ${fmt(iqr)}<br>` +
+          `기준: ${fmt(q1)} − 1.5×${fmt(iqr)} = <b>${fmt(lf)}</b> 미만, ${fmt(q3)} + 1.5×${fmt(iqr)} = <b>${fmt(uf)}</b> 초과 → ` +
+          (outs.length ? `<b class="o">이상치 ${outs.length}개</b> (${outs.map(([i, r]) => `${i}번: ${r[k]}${u}`).join(', ')})` : '이상치 없음') + '</p>');
+      });
+      svg.innerHTML = s;
+      calc.innerHTML = info.join('');
+    }
+    attr.addEventListener('change', draw);
+    by.addEventListener('change', draw);
+    draw();
+  });
+</script>

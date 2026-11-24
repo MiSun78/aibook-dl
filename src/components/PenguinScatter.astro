@@ -1,0 +1,99 @@
+---
+// 산점도와 상관계수 히트맵으로 핵심 속성 찾기
+---
+<div class="widget ps" data-penguinscatter>
+  <p class="widget-title">산점도와 상관계수로 핵심 속성 찾기</p>
+  <p class="widget-help">x축과 y축 속성을 바꿔 가며 세 종이 잘 나뉘는 조합을 찾아보세요. 오른쪽 히트맵의 칸을 누르면 그 두 속성의 산점도가 나옵니다. 결측치는 지운 데이터입니다.</p>
+  <div class="ps-ctl">
+    <label>x축 <select data-x></select></label>
+    <label>y축 <select data-y></select></label>
+    <label><input type="checkbox" data-norm /> 최소-최대 정규화</label>
+  </div>
+  <div class="ps-grid">
+    <figure>
+      <svg class="ps-svg" data-svg viewBox="0 0 420 330" role="img" aria-label="두 속성의 산점도"></svg>
+      <figcaption data-r></figcaption>
+    </figure>
+    <figure>
+      <svg class="ps-heat" data-heat viewBox="0 0 300 290" role="img" aria-label="수치형 속성 사이의 상관계수 히트맵"></svg>
+      <figcaption>상관계수: +1에 가까울수록 양(+), −1에 가까울수록 음(−)의 상관관계</figcaption>
+    </figure>
+  </div>
+  <p class="ps-legend" data-legend></p>
+</div>
+
+<style>
+  .ps-ctl { display: flex; gap: 1.2rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.6rem; font-size: 0.92rem; }
+  .ps-ctl select { font: inherit; padding: 0.25rem 0.4rem; border-radius: 6px; border: 1.5px solid var(--line-strong); }
+  .ps-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+  .ps-grid figure { margin: 0; }
+  .ps-grid svg { width: 100%; height: auto; display: block; background: var(--surface); border-radius: var(--radius-s); }
+  .ps-grid figcaption { font-size: 0.85rem; color: var(--muted); margin-top: 0.35rem; }
+  .ps-heat :global(rect) { cursor: pointer; }
+  .ps-legend { font-size: 0.85rem; margin: 0.5rem 0 0; display: flex; gap: 1rem; flex-wrap: wrap; }
+  .ps-legend :global(i) { display: inline-block; width: 0.75rem; height: 0.75rem; border-radius: 50%; margin-right: 0.3rem; vertical-align: -1px; }
+  @media (max-width: 760px) { .ps-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  import { loadPenguins, NUM, KO, UNIT, SPECIES, SP_KO, SP_COLOR, pearson, col, fmt } from '../scripts/penguins';
+  document.querySelectorAll<HTMLElement>('[data-penguinscatter]').forEach(async (root) => {
+    const rows = (await loadPenguins()).filter((r) => r.slice(0, 6).every((v) => v !== null));
+    const sx = root.querySelector<HTMLSelectElement>('[data-x]')!, sy = root.querySelector<HTMLSelectElement>('[data-y]')!;
+    const norm = root.querySelector<HTMLInputElement>('[data-norm]')!;
+    const svg = root.querySelector<SVGSVGElement>('[data-svg]')!, heat = root.querySelector<SVGSVGElement>('[data-heat]')!;
+    NUM.forEach((c) => { sx.add(new Option(`${KO[c]} (${c})`, c)); sy.add(new Option(`${KO[c]} (${c})`, c)); });
+    sx.value = 'culmen_length_mm'; sy.value = 'culmen_depth_mm';
+    root.querySelector('[data-legend]')!.innerHTML = SPECIES.map((s) => `<span><i style="background:${SP_COLOR[s]}"></i>${SP_KO[s]}(${s})</span>`).join('');
+    const vals = (c: string) => rows.map((r) => r[col(c)] as number);
+
+    function scale(v: number[]) {
+      if (!norm.checked) return v;
+      const lo = Math.min(...v), hi = Math.max(...v);
+      return v.map((a) => (a - lo) / (hi - lo));
+    }
+    function scatter() {
+      const X = scale(vals(sx.value)), Y = scale(vals(sy.value));
+      const [x0, x1] = [Math.min(...X), Math.max(...X)], [y0, y1] = [Math.min(...Y), Math.max(...Y)];
+      const px = (v: number) => 52 + ((v - x0) / (x1 - x0 || 1)) * 350, py = (v: number) => 290 - ((v - y0) / (y1 - y0 || 1)) * 270;
+      let s = '';
+      for (let t = 0; t <= 4; t++) {
+        const vx = x0 + ((x1 - x0) * t) / 4, vy = y0 + ((y1 - y0) * t) / 4;
+        s += `<line x1="${px(vx)}" y1="20" x2="${px(vx)}" y2="290" stroke="#e5e8ee"/><text x="${px(vx)}" y="306" font-size="11" text-anchor="middle" fill="#5b6478">${fmt(vx, norm.checked ? 2 : 1)}</text>`;
+        s += `<line x1="52" y1="${py(vy)}" x2="402" y2="${py(vy)}" stroke="#e5e8ee"/><text x="46" y="${py(vy) + 4}" font-size="11" text-anchor="end" fill="#5b6478">${fmt(vy, norm.checked ? 2 : 1)}</text>`;
+      }
+      rows.forEach((r, i) => { s += `<circle cx="${px(X[i])}" cy="${py(Y[i])}" r="3.6" fill="${SP_COLOR[r[0] as string]}" fill-opacity="0.75"/>`; });
+      s += `<text x="227" y="325" font-size="12" text-anchor="middle" font-weight="700" fill="#172038">${KO[sx.value]}${norm.checked ? '' : ` (${UNIT[sx.value]})`}</text>`;
+      s += `<text x="12" y="155" font-size="12" text-anchor="middle" font-weight="700" fill="#172038" transform="rotate(-90 12 155)">${KO[sy.value]}${norm.checked ? '' : ` (${UNIT[sy.value]})`}</text>`;
+      svg.innerHTML = s;
+      const r = pearson(vals(sx.value), vals(sy.value));
+      const word = Math.abs(r) >= 0.7 ? '강한' : Math.abs(r) >= 0.3 ? '약한' : '';
+      root.querySelector('[data-r]')!.textContent = sx.value === sy.value ? '같은 속성끼리는 상관계수가 1입니다.' :
+        `상관계수 r = ${r.toFixed(2)} → ${word ? `${word} ${r > 0 ? '양(+)' : '음(−)'}의 상관관계` : '상관관계가 거의 없음'}`;
+      drawHeat();
+    }
+    function color(r: number) {
+      const t = Math.abs(r);
+      const c = r >= 0 ? [37, 99, 235] : [224, 70, 78];
+      return `rgb(${Math.round(255 - (255 - c[0]) * t)},${Math.round(255 - (255 - c[1]) * t)},${Math.round(255 - (255 - c[2]) * t)})`;
+    }
+    function drawHeat() {
+      const n = NUM.length, S = 52, L = 86, T = 10;
+      let s = '';
+      NUM.forEach((a, i) => NUM.forEach((b, j) => {
+        const r = pearson(vals(a), vals(b));
+        const sel = (a === sy.value && b === sx.value) || (a === sx.value && b === sy.value);
+        s += `<rect data-a="${a}" data-b="${b}" x="${L + j * S}" y="${T + i * S}" width="${S - 2}" height="${S - 2}" fill="${color(r)}" stroke="${sel ? '#f2a516' : 'none'}" stroke-width="3"/>`;
+        s += `<text x="${L + j * S + S / 2 - 1}" y="${T + i * S + S / 2 + 4}" font-size="13" font-weight="700" text-anchor="middle" fill="${Math.abs(r) > 0.6 ? '#fff' : '#172038'}" pointer-events="none">${r.toFixed(2)}</text>`;
+      }));
+      NUM.forEach((a, i) => {
+        s += `<text x="${L - 6}" y="${T + i * S + S / 2 + 4}" font-size="12" text-anchor="end" fill="#172038">${KO[a]}</text>`;
+        s += `<text x="${L + i * S + S / 2}" y="${T + n * S + 16}" font-size="12" text-anchor="middle" fill="#172038">${KO[a]}</text>`;
+      });
+      heat.innerHTML = s;
+      heat.querySelectorAll<SVGRectElement>('rect').forEach((el) => el.addEventListener('click', () => { sx.value = el.dataset.b!; sy.value = el.dataset.a!; scatter(); }));
+    }
+    sx.addEventListener('change', scatter); sy.addEventListener('change', scatter); norm.addEventListener('change', scatter);
+    scatter();
+  });
+</script>

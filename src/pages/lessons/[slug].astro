@@ -1,17 +1,18 @@
 ---
 // 준비 중인 소단원: 교과서 차례만 보여 준다.
 import Base from '../../layouts/Base.astro';
-import { UNITS } from '../../data/lessons';
+import { UNITS, CHAPTERS } from '../../data/lessons';
 
 export function getStaticPaths() {
-  return UNITS.filter((u) => !u.ready).map((u) => ({ params: { slug: String(u.n) } }));
+  return UNITS.filter((u) => !u.ready).map((u) => ({ params: { slug: u.slug } }));
 }
 const { slug } = Astro.params;
-const unit = UNITS.find((u) => String(u.n) === slug)!;
+const unit = UNITS.find((u) => u.slug === slug)!;
+const chapter = CHAPTERS.find((c) => c.code === unit.chapter)!;
 ---
-<Base title={`${unit.code} ${unit.title}`} current={String(unit.n)}>
+<Base title={`${unit.code} ${unit.title}`} current={unit.slug}>
   <header class="oh">
-    <p class="oh-meta">Ⅱ-03 인공 신경망과 딥러닝</p>
+    <p class="oh-meta">Ⅱ-{chapter.code} {chapter.title}</p>
     <h1><span class="oh-code">{unit.code}</span> {unit.title}</h1>
     <p class="oh-pages">교과서 {unit.pages}</p>
   </header>
@@ -21,7 +22,7 @@ const unit = UNITS.find((u) => String(u.n) === slug)!;
       {unit.sections.map((s) => (
         <li>
           <span>{s.kind && <strong>{s.kind}: </strong>}{s.title}</span>
-          <span class="toc-p">{s.pages}</span>
+          <span class="toc-p">{s.pages || ''}</span>
         </li>
       ))}
     </ol>

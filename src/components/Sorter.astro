@@ -1,0 +1,78 @@
+---
+// 분류하기 연습: 항목마다 알맞은 갈래를 고르면 바로 맞았는지 알려 준다.
+interface Item { label: string; answer: string; why?: string }
+interface Props { title: string; help?: string; categories: string[]; items: Item[] }
+const { title, help, categories, items } = Astro.props;
+---
+<div class="widget so" data-sorter>
+  <p class="widget-title">{title}</p>
+  {help && <p class="widget-help">{help}</p>}
+  <ol class="so-list">
+    {items.map((it, i) => (
+      <li data-answer={it.answer}>
+        <span class="so-label">{it.label}</span>
+        <span class="so-opts" role="group" aria-label={`${i + 1}번 고르기`}>
+          {categories.map((c) => <button type="button" class="ghost" data-pick={c}>{c}</button>)}
+        </span>
+        <span class="so-fb" aria-live="polite"></span>
+        {it.why && <span class="so-why" hidden>{it.why}</span>}
+      </li>
+    ))}
+  </ol>
+  <div class="so-foot">
+    <span class="so-score" data-score></span>
+    <button type="button" class="ghost" data-reset>다시 하기</button>
+  </div>
+</div>
+
+<style>
+  .so-list { list-style: none; padding: 0; margin: 0; counter-reset: so; }
+  .so-list li {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.35rem 1rem; align-items: center;
+    padding: 0.6rem 0; border-bottom: 1px solid var(--line); counter-increment: so;
+  }
+  .so-label { font-weight: 650; }
+  .so-label::before { content: counter(so) '. '; color: var(--muted); }
+  .so-opts { display: flex; flex-wrap: wrap; gap: 0.3rem; justify-content: flex-end; }
+  .so-opts button { padding: 0.25em 0.7em; font-size: 0.88rem; }
+  .so-opts button.right { background: #2f9e5b; border-color: #2f9e5b; color: #fff; }
+  .so-opts button.wrong { background: var(--neg); border-color: var(--neg); color: #fff; }
+  .so-fb { grid-column: 1 / -1; font-size: 0.88rem; color: var(--ink-2); }
+  .so-fb:empty { display: none; }
+  .so-why { display: none; }
+  .so-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 0.8rem; }
+  .so-score { font-weight: 700; }
+  @media (max-width: 640px) { .so-list li { grid-template-columns: 1fr; } .so-opts { justify-content: flex-start; } }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-sorter]').forEach((root) => {
+    const rows = [...root.querySelectorAll<HTMLLIElement>('.so-list li')];
+    const score = root.querySelector<HTMLElement>('[data-score]')!;
+    const done = new Map<HTMLLIElement, boolean>();
+    const update = () => {
+      const ok = [...done.values()].filter(Boolean).length;
+      score.textContent = done.size ? `${rows.length}개 중 ${done.size}개 풀었고, ${ok}개 맞혔어요.` : '';
+    };
+    rows.forEach((li) => {
+      const fb = li.querySelector<HTMLElement>('.so-fb')!;
+      const why = li.querySelector<HTMLElement>('.so-why')?.textContent || '';
+      li.querySelectorAll<HTMLButtonElement>('[data-pick]').forEach((b) => b.addEventListener('click', () => {
+        const right = b.dataset.pick === li.dataset.answer;
+        li.querySelectorAll('[data-pick]').forEach((x) => x.classList.remove('right', 'wrong'));
+        b.classList.add(right ? 'right' : 'wrong');
+        if (!done.has(li)) done.set(li, right);
+        fb.textContent = right ? `맞아요. ${why}` : `다시 생각해 보세요.${done.get(li) === false ? ` 정답: ${li.dataset.answer}. ${why}` : ''}`;
+        update();
+      }));
+    });
+    root.querySelector('[data-reset]')!.addEventListener('click', () => {
+      done.clear();
+      rows.forEach((li) => {
+        li.querySelectorAll('[data-pick]').forEach((x) => x.classList.remove('right', 'wrong'));
+        li.querySelector<HTMLElement>('.so-fb')!.textContent = '';
+      });
+      update();
+    });
+  });
+</script>

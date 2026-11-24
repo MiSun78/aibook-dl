@@ -1,0 +1,31 @@
+---
+import './fig.css';
+const shoe = (x: number, y: number, kind: 'sneaker' | 'sandal' | 'boot', ok?: boolean) => {
+  const p = kind === 'sneaker' ? 'M0 22 L4 6 L22 6 L30 14 L44 16 L46 24 L0 24z'
+    : kind === 'sandal' ? 'M0 24 L46 24 L46 20 L0 20z M8 20 L18 8 M22 20 L14 8 M30 20 L36 12'
+    : 'M4 24 L4 -6 L20 -6 L20 12 L40 14 L44 24z';
+  return { x, y, p, kind, ok };
+};
+const train = [0, 1, 2, 3].map((i) => shoe(20 + (i % 2) * 64, 50 + Math.floor(i / 2) * 44, 'sneaker'));
+---
+<figure class="fg">
+  <svg viewBox="0 0 460 210" role="img" aria-label="운동화 사진만으로 학습한 모델은 샌들과 부츠를 신발로 알아보지 못할 수 있다">
+    <defs>
+      <marker id="fbi-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#3a4560" /></marker>
+    </defs>
+    <text x="80" y="24" class="tb c">학습 데이터: 운동화만</text>
+    <rect x="10" y="34" width="140" height="110" rx="8" fill="#f6f7f9" />
+    {train.map((s) => <path d={s.p} transform={`translate(${s.x},${s.y})`} fill="#e3ecfd" stroke="#2563eb" stroke-width="1.8" />)}
+    <line x1="158" y1="90" x2="196" y2="90" class="arw" marker-end="url(#fbi-a)" />
+    <rect x="200" y="68" width="70" height="44" rx="8" class="boxb" /><text x="235" y="95" class="tb c">모델</text>
+    <line x1="274" y1="90" x2="300" y2="90" class="arw" marker-end="url(#fbi-a)" />
+    {[['sneaker', '신발 ✓', '#2f9e5b'], ['sandal', '신발 아님 ✗', '#e0464e'], ['boot', '신발 아님 ✗', '#e0464e']].map(([k, t, c], i) => (
+      <g>
+        <path d={shoe(0, 0, k as any).p} transform={`translate(${312},${44 + i * 46})`} fill="#fff" stroke="#172038" stroke-width="1.8" />
+        <text x="372" y={66 + i * 46} class="t" style={`fill:${c};font-weight:700`}>{t}</text>
+      </g>
+    ))}
+    <text x="230" y="188" class="ts c">데이터가 한쪽으로 치우치면(편향) 모델도 치우친 판단을 한다</text>
+  </svg>
+  <figcaption>데이터 편향의 예. 데이터를 모을 때 다양한 경우가 고르게 들어가도록 해야 한다.</figcaption>
+</figure>

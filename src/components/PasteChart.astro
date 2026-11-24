@@ -1,0 +1,72 @@
+---
+// 스프레드시트에서 복사한 표를 붙여 넣으면 선그래프로 그려 주는 위젯 (활동 3)
+const SAMPLE = `연도\t2013\t2014\t2015\t2016\t2017\t2018\t2019\t2020\t2021\t2022
+닭고기\t109.5\t105.992\t103.743\t100.29\t105.26\t102.857\t104.25\t100\t107.67\t122.54
+자장면\t82.353\t83.397\t85.703\t88.108\t90.933\t94.982\t98.589\t100\t103.07\t114.2
+돈가스\t89.018\t89.758\t90.362\t92.297\t93.945\t96.416\t99.307\t100\t102.31\t111.28
+치킨\t88.969\t89.687\t90.215\t90.529\t91.326\t93.831\t98.667\t100\t102.96\t112.68`;
+---
+<div class="widget pc2" data-pastechart>
+  <p class="widget-title">표를 붙여 넣어 선그래프 그리기</p>
+  <p class="widget-help">국가통계포털에서 내려받은 표를 스프레드시트에서 선택해 복사(Ctrl+C)한 뒤 아래 칸에 붙여 넣으세요(Ctrl+V). 첫 줄은 연도, 둘째 줄부터는 품목 이름과 값입니다. 처음에 들어 있는 값은 교과서 71쪽의 예시입니다.</p>
+  <textarea data-input rows="6" spellcheck="false" aria-label="붙여 넣을 표">{SAMPLE}</textarea>
+  <div class="pc2-actions">
+    <button type="button" class="btn" data-draw>그래프 그리기</button>
+    <span class="pc2-msg" data-msg aria-live="polite"></span>
+  </div>
+  <svg data-svg viewBox="0 0 640 300" role="img" aria-label="붙여 넣은 표의 선그래프"></svg>
+  <p class="pc2-legend" data-legend></p>
+  <p class="pc2-sum" data-sum></p>
+</div>
+
+<style>
+  textarea { width: 100%; font: 0.85rem/1.5 ui-monospace, Consolas, monospace; border: 1.5px solid var(--line-strong); border-radius: var(--radius-s); padding: 0.5rem; white-space: pre; overflow-x: auto; }
+  .pc2-actions { display: flex; gap: 0.8rem; align-items: center; margin: 0.6rem 0; }
+  .pc2-msg { font-size: 0.88rem; color: var(--neg); }
+  svg { width: 100%; height: auto; display: block; background: var(--surface); border-radius: var(--radius-s); }
+  .pc2-legend { display: flex; flex-wrap: wrap; gap: 0.9rem; font-size: 0.88rem; margin: 0.5rem 0 0.2rem; }
+  .pc2-legend :global(i) { display: inline-block; width: 1rem; height: 0.25rem; margin-right: 0.3rem; vertical-align: 3px; }
+  .pc2-sum { font-size: 0.9rem; margin: 0; }
+</style>
+
+<script>
+  const COLORS = ['#2563eb', '#e0464e', '#f2a516', '#2f9e5b', '#7c4dcc', '#172038', '#0e8fa8', '#b5523b'];
+  document.querySelectorAll<HTMLElement>('[data-pastechart]').forEach((root) => {
+    const input = root.querySelector<HTMLTextAreaElement>('[data-input]')!;
+    const svg = root.querySelector<SVGSVGElement>('[data-svg]')!;
+    const msg = root.querySelector<HTMLElement>('[data-msg]')!;
+    function draw() {
+      const lines = input.value.trim().split(/\r?\n/).map((l) => l.split(/\t|,/).map((c) => c.trim()));
+      if (lines.length < 2) { msg.textContent = '첫 줄(연도)과 값이 있는 줄이 필요합니다.'; return; }
+      const xs = lines[0].slice(1);
+      const series = lines.slice(1).map((l) => ({ name: l[0], v: l.slice(1).map((c) => parseFloat(c.replace(/[^\d.-]/g, ''))) }));
+      const all = series.flatMap((s) => s.v.filter((v) => Number.isFinite(v)));
+      if (!all.length) { msg.textContent = '숫자를 찾지 못했습니다. 표를 다시 붙여 넣어 보세요.'; return; }
+      msg.textContent = '';
+      const lo = Math.min(...all), hi = Math.max(...all), pad = (hi - lo) * 0.08 || 1;
+      const L = 56, R = 620, T = 16, B = 266;
+      const px = (i: number) => L + (xs.length > 1 ? (i / (xs.length - 1)) * (R - L) : (R - L) / 2);
+      const py = (v: number) => B - ((v - (lo - pad)) / (hi - lo + 2 * pad)) * (B - T);
+      let s = '';
+      for (let t = 0; t <= 5; t++) {
+        const v = lo - pad + ((hi - lo + 2 * pad) * t) / 5;
+        s += `<line x1="${L}" y1="${py(v)}" x2="${R}" y2="${py(v)}" stroke="#e5e8ee"/><text x="${L - 6}" y="${py(v) + 4}" font-size="11" text-anchor="end" fill="#5b6478">${v.toFixed(0)}</text>`;
+      }
+      xs.forEach((x, i) => { s += `<text x="${px(i)}" y="${B + 18}" font-size="11" text-anchor="middle" fill="#5b6478">${x}</text>`; });
+      series.forEach((se, k) => {
+        const c = COLORS[k % COLORS.length];
+        const pts = se.v.map((v, i) => (Number.isFinite(v) ? `${px(i)},${py(v)}` : null)).filter(Boolean);
+        s += `<polyline points="${pts.join(' ')}" fill="none" stroke="${c}" stroke-width="2.5"/>`;
+        se.v.forEach((v, i) => { if (Number.isFinite(v)) s += `<circle cx="${px(i)}" cy="${py(v)}" r="3" fill="${c}"/>`; });
+      });
+      svg.innerHTML = s;
+      root.querySelector('[data-legend]')!.innerHTML = series.map((se, k) => `<span><i style="background:${COLORS[k % COLORS.length]}"></i>${se.name}</span>`).join('');
+      root.querySelector('[data-sum]')!.textContent = series.map((se) => {
+        const f = se.v.find((v) => Number.isFinite(v))!, l = [...se.v].reverse().find((v) => Number.isFinite(v))!;
+        return `${se.name}: ${xs[0]}→${xs[xs.length - 1]} ${((l / f - 1) * 100).toFixed(1)}% ${l >= f ? '상승' : '하락'}`;
+      }).join(' · ');
+    }
+    root.querySelector('[data-draw]')!.addEventListener('click', draw);
+    draw();
+  });
+</script>

@@ -1,0 +1,28 @@
+---
+import './fig.css';
+---
+<figure class="fg">
+  <svg viewBox="0 0 460 260" role="img" aria-label="전통적인 프로그래밍은 사람이 만든 규칙에 입력을 넣어 출력을 얻고, 기계학습은 입력과 정답 데이터로 규칙(모델)을 스스로 만든 뒤 새 입력을 예측한다">
+    <defs>
+      <marker id="fpm-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#3a4560" /></marker>
+    </defs>
+    <text x="12" y="24" class="th">전통적인 프로그래밍</text>
+    <rect x="12" y="40" width="92" height="44" rx="8" class="box" /><text x="58" y="60" class="t c">입력</text><text x="58" y="76" class="ts c">영어, 수학 점수</text>
+    <line x1="108" y1="62" x2="150" y2="62" class="arw" marker-end="url(#fpm-a)" />
+    <rect x="154" y="34" width="150" height="56" rx="8" class="boxh" /><text x="229" y="56" class="tb c">사람이 만든 규칙</text><text x="229" y="76" class="ts c">평균 = (a + b) ÷ 2</text>
+    <line x1="308" y1="62" x2="350" y2="62" class="arw" marker-end="url(#fpm-a)" />
+    <rect x="354" y="40" width="94" height="44" rx="8" class="box" /><text x="401" y="60" class="t c">출력</text><text x="401" y="76" class="ts c">평균 78점</text>
+    <text x="230" y="110" class="ts c">규칙을 분명하게 적을 수 있는 문제에 알맞다</text>
+
+    <line x1="12" y1="124" x2="448" y2="124" stroke="#dde1e8" />
+
+    <text x="12" y="150" class="th">기계학습</text>
+    <rect x="12" y="166" width="92" height="56" rx="8" class="box" /><text x="58" y="188" class="t c">데이터</text><text x="58" y="206" class="ts c">사진 + 정답(개/고양이)</text>
+    <line x1="108" y1="194" x2="150" y2="194" class="arw" marker-end="url(#fpm-a)" />
+    <rect x="154" y="166" width="150" height="56" rx="8" class="boxb" /><text x="229" y="188" class="tb c">학습</text><text x="229" y="208" class="ts c">규칙(모델)을 스스로 찾음</text>
+    <line x1="308" y1="194" x2="350" y2="194" class="arw" marker-end="url(#fpm-a)" />
+    <rect x="354" y="166" width="94" height="56" rx="8" class="boxb" /><text x="401" y="188" class="tb c">모델</text><text x="401" y="206" class="ts c">새 사진 → "고양이"</text>
+    <text x="230" y="246" class="ts c">규칙을 적기 어려운 문제(사진 구분, 감정 인식 등)에 알맞다</text>
+  </svg>
+  <figcaption>전통적인 프로그래밍은 사람이 규칙을 적고, 기계학습은 데이터에서 규칙을 찾아 모델을 만든다.</figcaption>
+</figure>

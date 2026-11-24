@@ -1,0 +1,32 @@
+---
+import './fig.css';
+---
+<figure class="fg">
+  <svg viewBox="0 0 460 240" role="img" aria-label="펭귄의 부리 길이(culmen_length), 부리 깊이(culmen_depth), 날개 길이(flipper_length)를 나타낸 그림">
+    <!-- 몸 -->
+    <ellipse cx="120" cy="140" rx="58" ry="84" fill="#172038" />
+    <ellipse cx="132" cy="150" rx="40" ry="68" fill="#fff" />
+    <circle cx="146" cy="74" r="5" fill="#fff" /><circle cx="147" cy="74" r="2.5" fill="#172038" />
+    <!-- 부리 -->
+    <path d="M168 78 L236 86 L168 96z" fill="#f2a516" stroke="#172038" stroke-width="1.5" />
+    <!-- 날개 -->
+    <path d="M72 110 Q40 170 66 214 Q84 170 86 120z" fill="#3a4560" />
+    <!-- 발 -->
+    <path d="M96 220 l-14 10 h28z M144 220 l-10 10 h28z" fill="#f2a516" />
+    <!-- 부리 길이 -->
+    <line x1="168" y1="62" x2="236" y2="62" stroke="#2563eb" stroke-width="2" />
+    <path d="M168 56 v12 M236 56 v12" stroke="#2563eb" stroke-width="2" />
+    <text x="250" y="58" class="tb" style="fill:#2563eb">부리 길이</text><text x="250" y="74" class="ts">culmen_length_mm</text>
+    <!-- 부리 깊이 -->
+    <line x1="180" y1="79" x2="180" y2="95" stroke="#e0464e" stroke-width="2" />
+    <path d="M174 79 h12 M174 95 h12" stroke="#e0464e" stroke-width="2" />
+    <line x1="186" y1="104" x2="246" y2="112" stroke="#e0464e" stroke-dasharray="3 3" />
+    <text x="250" y="114" class="tb" style="fill:#e0464e">부리 깊이</text><text x="250" y="130" class="ts">culmen_depth_mm</text>
+    <!-- 날개 길이 -->
+    <line x1="40" y1="110" x2="40" y2="214" stroke="#2f9e5b" stroke-width="2" />
+    <path d="M34 110 h12 M34 214 h12" stroke="#2f9e5b" stroke-width="2" />
+    <text x="250" y="170" class="tb" style="fill:#2f9e5b">날개 길이</text><text x="250" y="186" class="ts">flipper_length_mm (왼쪽 초록 선)</text>
+    <text x="250" y="216" class="tb">체질량</text><text x="250" y="232" class="ts">body_mass_g (몸무게, g)</text>
+  </svg>
+  <figcaption>펭귄 데이터의 수치형 속성 네 가지. 이 값들로 아델리, 턱끈, 젠투 세 종을 구분할 수 있는지 탐색한다.</figcaption>
+</figure>

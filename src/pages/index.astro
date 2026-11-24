@@ -1,14 +1,14 @@
 ---
 import Base from '../layouts/Base.astro';
 import DrawPad from '../components/DrawPad.astro';
-import { UNITS } from '../data/lessons';
+import { UNITS, CHAPTERS } from '../data/lessons';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 <Base current="home">
   <section class="hero">
     <div class="hero-text">
       <h1>숫자를 써 보세요.<br />신경망이<br />맞혀 봅니다.</h1>
-      <p class="lead">이 신경망은 손글씨 숫자 수천 장을 보고 스스로 배웠습니다. 어떻게 이런 일이 가능한지 교과서 Ⅱ-03 '인공 신경망과 딥러닝'에서 배웁니다.</p>
+      <p class="lead">이 신경망은 손글씨 숫자 수천 장을 보고 스스로 배웠습니다. 데이터로 학습하는 기계학습부터 이런 신경망까지, 교과서 Ⅱ '인공지능과 학습'을 차례대로 배웁니다.</p>
     </div>
     <DrawPad variant="hero" />
   </section>
@@ -25,10 +25,12 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
   <section class="units">
     <h2>차례</h2>
+    {CHAPTERS.map((c) => (<>
+    <h3 class="ch-title">Ⅱ-{c.code} {c.title} <span>교과서 {c.pages}</span></h3>
     <ol class="unit-list">
-      {UNITS.map((u) => (
+      {UNITS.filter((u) => u.chapter === c.code).map((u) => (
         <li class:list={{ pending: !u.ready }}>
-          <a href={`${base}/lessons/${u.n}/`}>
+          <a href={`${base}/lessons/${u.slug}/`}>
             <span class="u-code">{u.code}</span>
             <span class="u-body">
               <span class="u-title">{u.title}</span>
@@ -39,6 +41,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         </li>
       ))}
     </ol>
+    </>))}
   </section>
 </Base>
 
@@ -53,6 +56,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   .how h2, .units h2 { margin-bottom: 0.7rem; }
   .how ul { max-width: var(--measure); }
   .chip { font-size: 0.85rem; font-weight: 750; background: var(--fire-soft); border: 1.5px solid var(--fire); border-radius: 999px; padding: 0 0.55rem; }
+  .ch-title { font-size: 1.1rem; margin: 1.6rem 0 0.4rem; }
+  .ch-title span { font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-left: 0.4rem; }
   .unit-list { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--line); }
   .unit-list li { margin: 0; border-bottom: 1px solid var(--line); }
   .unit-list a { display: grid; grid-template-columns: 4rem 1fr auto; gap: 1rem; padding: 1.1rem 0.6rem; text-decoration: none; color: var(--ink); }

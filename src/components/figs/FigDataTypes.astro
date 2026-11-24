@@ -1,0 +1,30 @@
+---
+import './fig.css';
+---
+<figure class="fg">
+  <svg viewBox="0 0 460 270" role="img" aria-label="데이터 속성은 수치형(연속형, 이산형)과 범주형으로 나뉘고, 데이터 형식은 표로 된 정형 데이터와 이미지·영상·텍스트·소리 같은 비정형 데이터로 나뉜다">
+    <text x="12" y="22" class="th">속성의 유형</text>
+    <rect x="160" y="34" width="140" height="30" rx="8" class="box" /><text x="230" y="54" class="tb c">데이터 속성</text>
+    <path d="M230 64 V76 M120 76 H340 M120 76 V86 M340 76 V86" class="ink" style="stroke-width:1.5" />
+    <rect x="60" y="86" width="120" height="30" rx="8" class="boxb" /><text x="120" y="106" class="tb c">수치형</text>
+    <rect x="280" y="86" width="120" height="30" rx="8" class="boxh" /><text x="340" y="106" class="tb c">범주형</text>
+    <path d="M120 116 V126 M60 126 H180 M60 126 V136 M180 126 V136" class="ink" style="stroke-width:1.5" />
+    <rect x="12" y="136" width="96" height="44" rx="8" fill="#fff" stroke="#2563eb" /><text x="60" y="154" class="t c">연속형</text><text x="60" y="171" class="ts c">키 172.7cm</text>
+    <rect x="132" y="136" width="96" height="44" rx="8" fill="#fff" stroke="#2563eb" /><text x="180" y="154" class="t c">이산형</text><text x="180" y="171" class="ts c">팔굽혀 펴기 13회</text>
+    <rect x="280" y="136" width="120" height="44" rx="8" fill="#fff" stroke="#f2a516" /><text x="340" y="154" class="t c">성별, 혈액형</text><text x="340" y="171" class="ts c">정해진 값 중 하나</text>
+
+    <line x1="12" y1="196" x2="448" y2="196" stroke="#dde1e8" />
+    <text x="12" y="218" class="th">형식</text>
+    <g transform="translate(60,226)">
+      {[0, 1, 2].map((r) => [0, 1, 2, 3].map((c) => <rect x={c * 22} y={r * 11} width="22" height="11" fill={r === 0 ? '#e3ecfd' : '#fff'} stroke="#5b6478" stroke-width="0.8" />))}
+    </g>
+    <text x="190" y="242" class="t">정형: 행과 열의 표</text>
+    <g transform="translate(300,222)">
+      <rect width="34" height="26" rx="3" fill="#8fb8e8" /><path d="M0 26 L12 12 L22 20 L34 8 V26z" fill="#6aa457" />
+      <path d="M44 6 h30 M44 13 h26 M44 20 h30" stroke="#5b6478" stroke-width="2" />
+      <path d="M84 14 l4 -8 l4 16 l4 -12 l4 8" stroke="#2563eb" stroke-width="2" fill="none" />
+    </g>
+    <text x="300" y="262" class="t">비정형: 이미지, 텍스트, 소리</text>
+  </svg>
+  <figcaption>몸무게와 키는 연속형, 나이는 이산형, 옷 사이즈(S·M·L)는 범주형 데이터이다.</figcaption>
+</figure>

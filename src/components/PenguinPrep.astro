@@ -1,0 +1,112 @@
+---
+// 펭귄 데이터 살펴보기와 전처리를 단계별로 해 보는 위젯
+---
+<div class="widget pp" data-penguinprep>
+  <p class="widget-title">펭귄 데이터 직접 살펴보고 전처리하기</p>
+  <p class="widget-help">실습 1의 코드가 하는 일을 버튼으로 해 봅니다. 아래 버튼을 차례로 누르며 데이터의 크기, 결측치, 통계가 어떻게 바뀌는지 보세요. 빨간 칸은 결측치(NA), 노란 칸은 이상치입니다.</p>
+
+  <div class="pp-steps" role="group" aria-label="전처리 단계">
+    <button type="button" class="ghost" data-step="0" aria-pressed="true">원본</button>
+    <button type="button" class="ghost" data-step="1" aria-pressed="false">① 결측치 행 삭제</button>
+    <button type="button" class="ghost" data-step="2" aria-pressed="false">② 성별 이상치(.) 행 삭제</button>
+    <button type="button" class="ghost" data-step="3" aria-pressed="false">③ 최소-최대 정규화</button>
+  </div>
+  <p class="pp-code"><code data-code></code></p>
+  <p class="pp-shape" data-shape aria-live="polite"></p>
+
+  <div class="pp-grid">
+    <div>
+      <p class="pp-cap">데이터 보기 <label class="pp-toggle"><input type="checkbox" data-problems /> 문제 있는 행만</label></p>
+      <div class="pp-scroll"><table class="pp-table" data-table></table></div>
+    </div>
+    <div>
+      <p class="pp-cap">속성별 결측치 수 <code>df.isnull().sum()</code></p>
+      <table class="pp-na" data-na></table>
+      <p class="pp-cap">종별 데이터 수 <code>sns.countplot()</code></p>
+      <div class="pp-bars" data-count></div>
+    </div>
+  </div>
+
+  <p class="pp-cap">통계 요약 <code>df.describe()</code></p>
+  <div class="pp-scroll"><table class="pp-desc" data-desc></table></div>
+</div>
+
+<style>
+  .pp-steps { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.6rem; }
+  .pp-code { margin: 0 0 0.3rem; font-size: 0.88rem; }
+  .pp-code code { background: #172038; color: #e8ecf5; padding: 0.25rem 0.5rem; border-radius: 4px; }
+  .pp-shape { font-weight: 700; margin: 0 0 0.9rem; }
+  .pp-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 1.2rem; }
+  .pp-cap { font-size: 0.85rem; font-weight: 750; color: var(--ink-2); margin: 0.2rem 0 0.35rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+  .pp-cap code { font-weight: 500; font-size: 0.8rem; }
+  .pp-toggle { font-weight: 500; font-size: 0.82rem; display: inline-flex; gap: 0.25rem; align-items: center; margin-left: auto; }
+  .pp-scroll { overflow: auto; max-height: 19rem; border: 1px solid var(--line); border-radius: var(--radius-s); margin-bottom: 1rem; }
+  .pp-scroll table { margin: 0; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+  .pp-scroll :global(th), .pp-scroll :global(td) { padding: 0.25rem 0.5rem; white-space: nowrap; }
+  .pp-scroll :global(thead th) { position: sticky; top: 0; background: var(--surface); }
+  .pp-scroll :global(td.na) { background: #fde7ea; color: var(--neg); font-weight: 700; }
+  .pp-scroll :global(td.out) { background: var(--fire-soft); font-weight: 700; }
+  .pp-scroll :global(td.idx) { color: var(--muted); }
+  .pp-na { font-size: 0.82rem; margin-bottom: 1rem; }
+  .pp-na :global(td), .pp-na :global(th) { padding: 0.2rem 0.5rem; }
+  .pp-na :global(.bad) { color: var(--neg); font-weight: 750; }
+  .pp-bars :global(div) { display: grid; grid-template-columns: 4.5rem 1fr 2.4rem; gap: 0.4rem; align-items: center; font-size: 0.85rem; margin-bottom: 0.3rem; }
+  .pp-bars :global(span.b) { height: 0.9rem; border-radius: 3px; }
+  @media (max-width: 760px) { .pp-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  import { loadPenguins, COLS, NUM, KO, SPECIES, SP_KO, SP_COLOR, describe, fmt, col, type Row } from '../scripts/penguins';
+  const CODES = [
+    "df = pd.read_csv('penguins_size.csv')",
+    'df = df.dropna(axis=0)',
+    'df.drop(336, axis=0, inplace=True)',
+    'df[수치형 속성] = MinMaxScaler().fit_transform(df[수치형 속성])',
+  ];
+  document.querySelectorAll<HTMLElement>('[data-penguinprep]').forEach(async (root) => {
+    const raw = await loadPenguins();
+    const all: [number, Row][] = raw.map((r, i) => [i, r]);
+    let step = 0;
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const onlyBad = $<HTMLInputElement>('[data-problems]');
+
+    function data(): [number, Row][] {
+      let d = all;
+      if (step >= 1) d = d.filter(([, r]) => r.every((v) => v !== null));
+      if (step >= 2) d = d.filter(([, r]) => r[6] !== '.');
+      if (step >= 3) {
+        const idx = NUM.map(col);
+        const mm = idx.map((k) => { const v = d.map(([, r]) => r[k] as number); return [Math.min(...v), Math.max(...v)]; });
+        d = d.map(([i, r]) => { const c = r.slice(); idx.forEach((k, j) => { c[k] = ((r[k] as number) - mm[j][0]) / (mm[j][1] - mm[j][0]); }); return [i, c]; });
+      }
+      return d;
+    }
+
+    function draw() {
+      root.querySelectorAll('[data-step]').forEach((b) => b.setAttribute('aria-pressed', String(Number((b as HTMLElement).dataset.step) === step)));
+      $('[data-code]').textContent = CODES[step];
+      const d = data();
+      $('[data-shape]').textContent = `df.shape → (${d.length}, ${COLS.length})  데이터 ${d.length}개, 속성 ${COLS.length}개`;
+      const bad = (r: Row) => r.some((v) => v === null || v === '.');
+      const show = onlyBad.checked ? d.filter(([, r]) => bad(r)) : d;
+      const head = `<thead><tr><th></th>${COLS.map((c) => `<th>${c}<br><small>${KO[c]}</small></th>`).join('')}</tr></thead>`;
+      const body = show.map(([i, r]) => `<tr><td class="idx">${i}</td>${r.map((v) => {
+        if (v === null) return '<td class="na">NaN</td>';
+        if (v === '.') return '<td class="out">.</td>';
+        return `<td>${typeof v === 'number' ? (step >= 3 ? v.toFixed(3) : v) : v}</td>`;
+      }).join('')}</tr>`).join('');
+      $('[data-table]').innerHTML = head + `<tbody>${body || '<tr><td colspan="8">문제 있는 행이 없습니다.</td></tr>'}</tbody>`;
+      $('[data-na]').innerHTML = COLS.map((c, k) => { const n = d.filter(([, r]) => r[k] === null).length; return `<tr><th>${c}</th><td class="${n ? 'bad' : ''}">${n}</td></tr>`; }).join('');
+      const counts = SPECIES.map((s) => d.filter(([, r]) => r[0] === s).length);
+      const mx = Math.max(...counts);
+      $('[data-count]').innerHTML = SPECIES.map((s, j) => `<div><span>${SP_KO[s]}</span><span class="b" style="width:${(counts[j] / mx) * 100}%;background:${SP_COLOR[s]}"></span><span>${counts[j]}</span></div>`).join('');
+      const stats = NUM.map((c) => describe(d.map(([, r]) => r[col(c)]).filter((v): v is number => typeof v === 'number')));
+      const names: [string, keyof ReturnType<typeof describe>][] = [['개수(count)', 'count'], ['평균(mean)', 'mean'], ['표준편차(std)', 'std'], ['최솟값(min)', 'min'], ['1사분위수(25%)', 'q1'], ['중앙값(50%)', 'q2'], ['3사분위수(75%)', 'q3'], ['최댓값(max)', 'max']];
+      $('[data-desc]').innerHTML = `<thead><tr><th></th>${NUM.map((c) => `<th>${KO[c]}</th>`).join('')}</tr></thead><tbody>` +
+        names.map(([l, k]) => `<tr><th>${l}</th>${stats.map((s) => `<td>${k === 'count' ? s[k] : fmt(s[k] as number, step >= 3 ? 3 : 2)}</td>`).join('')}</tr>`).join('') + '</tbody>';
+    }
+    root.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((b) => b.addEventListener('click', () => { step = Number(b.dataset.step); draw(); }));
+    onlyBad.addEventListener('change', draw);
+    draw();
+  });
+</script>

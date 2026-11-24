@@ -2,7 +2,7 @@
 
 export const SITE = {
   title: '우리 반 AI 연구소',
-  subtitle: '인공지능 기초 Ⅱ-03 인공 신경망과 딥러닝',
+  subtitle: '인공지능 기초 Ⅱ 인공지능과 학습',
 
   // 깃허브 저장소 "사용자명/저장소명". 채우면 '코랩에서 열기' 버튼이 켜집니다.
   // 예: 'mstai/aibook-dl'
@@ -19,6 +19,9 @@ export const SITE = {
   worksheets: {
     u1: '1eQd5JTBq60AkIeaWRrG45suPNh9kiX5ps7rp6rvxxRs',
     u2: '11ejDgD3mApFvbUp00lJs2FOrUd2SkcrVn81ef8OZDYc',
+    'c01-1': '1rOgRTlyBRf0QwHMxU_cgX4gTd1EIqmSXZJ3SeGzYASc',
+    'c01-2': '1EL-Zh0vtwPJR1K0ONGMxK_I--fW0vlEh5vOOuYOHHSM',
+    'c01-3': '1Dl6vhpd1cqkaRQd7GP1-t0OlHXbmwLfsOHs4GKWuRYw',
     u3: '1X5e8pNLh1aOivnRUZTny9nBnPfFtVOZEHDAtuVTdJrk',
     u4: '17NzbvDT5GQfdekmpRRGYfRc_9WJZc_2xdKRy2IbfgeI',
   } as Record<string, string>,

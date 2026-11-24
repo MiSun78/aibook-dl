@@ -1,17 +1,19 @@
 ---
 import Base from './Base.astro';
-import { UNITS } from '../data/lessons';
+import { UNITS, CHAPTERS } from '../data/lessons';
 
-interface Props { n: number; ids: string[]; }
-const { n, ids } = Astro.props;
-const unit = UNITS.find((u) => u.n === n)!;
-const prev = UNITS.find((u) => u.n === n - 1);
-const next = UNITS.find((u) => u.n === n + 1);
+interface Props { n?: number; slug?: string; ids: string[]; }
+const { n, slug, ids } = Astro.props;
+const idx = UNITS.findIndex((u) => (slug ? u.slug === slug : u.n === n));
+const unit = UNITS[idx];
+const chapter = CHAPTERS.find((c) => c.code === unit.chapter)!;
+const prev = UNITS[idx - 1];
+const next = UNITS[idx + 1];
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
-<Base title={`${unit.code} ${unit.title}`} current={String(n)}>
+<Base title={`${unit.code} ${unit.title}`} current={unit.slug}>
   <header class="lesson-head">
-    <p class="lh-meta">Ⅱ-03 인공 신경망과 딥러닝</p>
+    <p class="lh-meta">Ⅱ-{chapter.code} {chapter.title}</p>
     <h1><span class="lh-code">{unit.code}</span> {unit.title}</h1>
     <p class="lh-pages">교과서 {unit.pages}</p>
     <div class="lh-grid">
@@ -42,8 +44,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   </article>
 
   <nav class="pager" aria-label="단원 이동">
-    {prev ? <a href={`${base}/lessons/${prev.n}/`}>이전: {prev.code} {prev.title}</a> : <span />}
-    {next ? <a href={`${base}/lessons/${next.n}/`}>다음: {next.code} {next.title}</a> : <span />}
+    {prev ? <a href={`${base}/lessons/${prev.slug}/`}>이전: {prev.code} {prev.title}</a> : <span />}
+    {next ? <a href={`${base}/lessons/${next.slug}/`}>다음: {next.code} {next.title}</a> : <span />}
   </nav>
 </Base>
 
