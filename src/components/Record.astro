@@ -1,16 +1,27 @@
 ---
 // 학생 기록 칸. 입력 내용은 이 기기의 브라우저에만 저장된다.
-import { SITE } from '../config';
+import { SITE, worksheetCopyUrl } from '../config';
 interface Props {
   id: string;
   prompts: string[];
   title?: string;
 }
 const { id, prompts, title = '나의 기록' } = Astro.props;
+const sheet = worksheetCopyUrl(id);
 ---
+{sheet && (
+  <div class="sheet widget">
+    <div class="sheet-icon" aria-hidden="true"><svg viewBox="0 0 24 30" width="26" height="32"><path d="M2 1h14l6 6v22H2z" fill="#2563eb"/><path d="M16 1v6h6" fill="#9ab8f5"/><path d="M6 14h12M6 18h12M6 22h8" stroke="#fff" stroke-width="2"/></svg></div>
+    <div class="sheet-text">
+      <p class="widget-title">구글 문서 학습지</p>
+      <p class="widget-help">버튼을 누르면 내 구글 드라이브에 학습지 사본이 만들어집니다. 수업 중 활동 결과를 바로 적고, 선생님이 안내한 곳에 제출하세요.</p>
+    </div>
+    <a class="btn" href={sheet} target="_blank" rel="noopener">내 학습지 만들기</a>
+  </div>
+)}
 <div class="record widget" data-record={id}>
   <p class="widget-title">{title}</p>
-  <p class="widget-help">적은 내용은 이 기기에만 저장됩니다. 제출할 때는 복사해서 붙여 넣으세요.</p>
+  <p class="widget-help">{sheet ? '학습지를 쓰기 어려울 때 여기에 적어도 됩니다. ' : ''}적은 내용은 이 기기에만 저장됩니다. 제출할 때는 복사해서 붙여 넣으세요.</p>
   {prompts.map((p, i) => (
     <label class="rec-item">
       <span class="rec-q">{p}</span>
@@ -25,6 +36,9 @@ const { id, prompts, title = '나의 기록' } = Astro.props;
 </div>
 
 <style>
+  .sheet { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  .sheet .sheet-text { flex: 1 1 18rem; }
+  .sheet .widget-help { margin-bottom: 0; }
   .rec-item { display: block; margin-bottom: 0.9rem; }
   .rec-q { display: block; font-weight: 650; margin-bottom: 0.3rem; }
   textarea {
