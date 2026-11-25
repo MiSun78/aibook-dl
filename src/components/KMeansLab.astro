@@ -1,0 +1,95 @@
+---
+// k-평균 군집화 과정을 한 단계씩 따라가 보기
+---
+<div class="widget km" data-kmeans>
+  <p class="widget-title">k-평균 군집화 한 단계씩 따라가기</p>
+  <p class="widget-help">[다음 단계]를 누를 때마다 ② 중심점 정하기 → ③ 가장 가까운 중심점에 할당 → ④ 중심점을 군집의 평균으로 옮기기가 차례로 진행됩니다. 중심점이 더 움직이지 않으면 끝납니다.</p>
+  <div class="km-ctl">
+    <label>군집의 개수 k <input type="range" min="2" max="6" value="3" data-k /> <b data-kv></b></label>
+    <label>데이터 개수 N <input type="range" min="30" max="200" step="10" value="90" data-n /> <b data-nv></b></label>
+    <button type="button" data-step>다음 단계</button>
+    <button type="button" class="ghost" data-run>끝까지</button>
+    <button type="button" class="ghost" data-reset>중심점 다시 정하기</button>
+    <button type="button" class="ghost" data-new>새 데이터</button>
+  </div>
+  <div class="km-grid">
+    <svg data-svg viewBox="0 0 400 300" role="img" aria-label="데이터와 군집 중심점"></svg>
+    <div>
+      <p class="km-stage" data-stage aria-live="polite"></p>
+      <p class="km-stat" data-stat></p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .km-ctl { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; margin-bottom: 0.6rem; font-size: 0.92rem; }
+  .km-ctl label { display: inline-flex; gap: 0.4rem; align-items: center; }
+  .km-ctl input[type='range'] { width: 7rem; }
+  .km-ctl button { padding: 0.3em 0.8em; font-size: 0.9rem; }
+  .km-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+  .km-grid svg { width: 100%; height: auto; display: block; background: #fff; border: 1px solid var(--line); border-radius: var(--radius-s); }
+  .km-stage { font-weight: 700; margin: 0 0 0.6rem; line-height: 1.6; }
+  .km-stat { font-size: 0.92rem; color: var(--ink-2); line-height: 1.7; margin: 0; }
+  @media (max-width: 760px) { .km-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  import { rng, gauss, silhouette } from '../scripts/ml';
+  const COLORS = ['#2563eb', '#e0464e', '#f2a516', '#138a52', '#8b5cf6', '#0ea5b7'];
+  document.querySelectorAll<HTMLElement>('[data-kmeans]').forEach((root) => {
+    const $ = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const ik = $<HTMLInputElement>('[data-k]'), inn = $<HTMLInputElement>('[data-n]'), svg = $<SVGSVGElement>('[data-svg]');
+    let seed = 11, P: number[][] = [], C: number[][] = [], lab: number[] = [], phase = 0, iter = 0, done = false;
+    function makeData() {
+      const r = rng(seed), n = +inn.value, g = 3 + Math.floor(r() * 2);
+      const centers = Array.from({ length: g }, () => [0.15 + r() * 0.7, 0.15 + r() * 0.7]);
+      P = Array.from({ length: n }, (_, i) => { const c = centers[i % g]; return [Math.min(0.98, Math.max(0.02, c[0] + gauss(r) * 0.08)), Math.min(0.98, Math.max(0.02, c[1] + gauss(r) * 0.08))]; });
+      reset();
+    }
+    function reset() { C = []; lab = P.map(() => -1); phase = 0; iter = 0; done = false; draw(); }
+    const d2 = (a: number[], b: number[]) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
+    function step() {
+      if (done) return;
+      const k = +ik.value;
+      if (phase === 0) { const r = rng(seed * 31 + iter + Date.now() % 1000); C = Array.from({ length: k }, () => [0.05 + r() * 0.9, 0.05 + r() * 0.9]); phase = 1; }
+      else if (phase === 1) {
+        const nl = P.map((p) => C.map((c) => d2(p, c)).reduce((b, v, i, a) => (v < a[b] ? i : b), 0));
+        if (iter > 0 && nl.every((v, i) => v === lab[i])) done = true;
+        lab = nl; phase = 2;
+      } else {
+        const old = C.map((c) => c.slice());
+        C = C.map((c, j) => { const m = P.filter((_, i) => lab[i] === j); return m.length ? [m.reduce((s, p) => s + p[0], 0) / m.length, m.reduce((s, p) => s + p[1], 0) / m.length] : c; });
+        iter++; phase = 1;
+        if (C.every((c, j) => d2(c, old[j]) < 1e-10)) done = true;
+      }
+      draw();
+    }
+    function draw() {
+      $('[data-kv]').textContent = ik.value; $('[data-nv]').textContent = inn.value;
+      const W = 400, H = 300, px = (v: number) => 10 + v * (W - 20), py = (v: number) => H - 10 - v * (H - 20);
+      let s = '';
+      if (phase === 2 || done) P.forEach((p, i) => { if (lab[i] >= 0) { const c = C[lab[i]]; s += `<line x1="${px(p[0])}" y1="${py(p[1])}" x2="${px(c[0])}" y2="${py(c[1])}" stroke="${COLORS[lab[i]]}" stroke-opacity=".18"/>`; } });
+      P.forEach((p, i) => (s += `<circle cx="${px(p[0])}" cy="${py(p[1])}" r="4" fill="${lab[i] >= 0 ? COLORS[lab[i]] : '#9aa3b2'}" fill-opacity=".85"/>`));
+      C.forEach((c, j) => (s += `<path d="M${px(c[0])} ${py(c[1]) - 11} L${px(c[0]) + 3.2} ${py(c[1]) - 3.4} L${px(c[0]) + 11} ${py(c[1]) - 3.4} L${px(c[0]) + 4.8} ${py(c[1]) + 2} L${px(c[0]) + 7} ${py(c[1]) + 10} L${px(c[0])} ${py(c[1]) + 5} L${px(c[0]) - 7} ${py(c[1]) + 10} L${px(c[0]) - 4.8} ${py(c[1]) + 2} L${px(c[0]) - 11} ${py(c[1]) - 3.4} L${px(c[0]) - 3.2} ${py(c[1]) - 3.4}Z" fill="${COLORS[j]}" stroke="#172038" stroke-width="2"/>`));
+      svg.innerHTML = s;
+      const msg = done ? `끝! 중심점이 더는 움직이지 않습니다. (반복 ${iter}번)` :
+        phase === 0 ? '① 군집의 개수 k를 정했습니다. [다음 단계]를 누르면 ② 중심점 k개를 무작위로 놓습니다.' :
+        phase === 1 ? (iter === 0 ? '② 중심점(★)을 무작위로 놓았습니다. 다음: 각 데이터를 가장 가까운 중심점에 할당합니다.' : '④ 중심점을 각 군집의 평균 위치로 옮겼습니다. 다음: 다시 할당합니다.') :
+        '③ 각 데이터를 가장 가까운 중심점의 군집에 할당했습니다. 다음: 중심점을 군집의 평균으로 옮깁니다.';
+      $('[data-stage]').textContent = msg;
+      if (done) {
+        const sse = P.reduce((s, p, i) => s + d2(p, C[lab[i]]), 0);
+        const sizes = C.map((_, j) => lab.filter((l) => l === j).length);
+        $('[data-stat]').innerHTML = `실루엣 점수: <b>${silhouette(P, lab).toFixed(3)}</b> (1에 가까울수록 잘 나뉨)<br>오차 제곱합(SSE): ${sse.toFixed(2)}<br>군집별 데이터 수: ${sizes.join(', ')}<br><small>[중심점 다시 정하기]로 처음 위치를 바꾸면 결과가 달라질 수 있어요.</small>`;
+      } else $('[data-stat]').textContent = '';
+    }
+    $('[data-step]').addEventListener('click', step);
+    $('[data-run]').addEventListener('click', () => { let g = 0; while (!done && g++ < 200) step(); });
+    $('[data-reset]').addEventListener('click', reset);
+    $('[data-new]').addEventListener('click', () => { seed++; makeData(); });
+    ik.addEventListener('input', reset);
+    inn.addEventListener('change', makeData);
+    inn.addEventListener('input', () => ($('[data-nv]').textContent = inn.value));
+    makeData();
+  });
+</script>

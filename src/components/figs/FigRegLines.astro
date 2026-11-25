@@ -1,0 +1,21 @@
+---
+import './fig.css';
+const P = [[40, 150], [58, 140], [70, 128], [84, 120], [96, 112], [112, 96], [128, 90], [140, 76], [158, 66], [172, 56]];
+---
+<figure class="fg">
+  <svg viewBox="0 0 460 230" role="img" aria-label="단순 선형 회귀는 독립 변수 하나로, 다중 선형 회귀는 독립 변수 여러 개로 종속 변수를 예측한다">
+    <text x="110" y="20" class="tb c">단순 선형 회귀</text>
+    <line x1="28" y1="170" x2="196" y2="170" class="arw" /><line x1="28" y1="170" x2="28" y2="30" class="arw" />
+    <line x1="30" y1="160" x2="190" y2="48" stroke="#e0464e" stroke-width="2.5" />
+    {P.map(([x, y], i) => <circle cx={x} cy={y + (i % 2 ? 8 : -6)} r="4.5" fill="#172038" fill-opacity=".8" />)}
+    <text x="112" y="188" class="ts c">목둘레 (독립 변수)</text>
+    <text x="20" y="100" class="ts c" transform="rotate(-90 20 100)">허리둘레 (종속 변수)</text>
+    <text x="340" y="20" class="tb c">다중 선형 회귀</text>
+    <path d="M250 150 L340 176 L440 120 L350 94 Z" fill="#fde8e9" stroke="#e0464e" stroke-width="1.5" />
+    {[[280, 140], [310, 128], [330, 150], [360, 120], [380, 140], [400, 118], [300, 112], [350, 108]].map(([x, y]) => <circle cx={x} cy={y} r="4" fill="#172038" fill-opacity=".8" />)}
+    <text x="345" y="196" class="ts c">목둘레, 몸무게 (독립 변수 2개)</text>
+    <text x="345" y="76" class="ts c">예측값이 평면을 이룬다</text>
+    <text x="230" y="222" class="t c">y = b + a₁x₁ + a₂x₂ + … (y 종속 변수, x 독립 변수, a 회귀계수, b 절편)</text>
+  </svg>
+  <figcaption>최적의 선형 회귀 모델은 종속 변수를 가장 잘 예측하는 회귀계수와 절편을 찾은 것이다.</figcaption>
+</figure>

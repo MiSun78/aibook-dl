@@ -1,0 +1,18 @@
+---
+import './fig.css';
+const strong = Array.from({ length: 16 }, (_, i) => [30 + i * 10, 150 - i * 7 + ((i * 37) % 11) - 5]);
+const weak = Array.from({ length: 16 }, (_, i) => [250 + i * 10, 140 - i * 4 + ((i * 53) % 41) - 20]);
+---
+<figure class="fg">
+  <svg viewBox="0 0 440 200" role="img" aria-label="점들이 선 가까이 모여 있으면 결정계수가 크고, 넓게 흩어져 있으면 결정계수가 작다">
+    <rect x="20" y="20" width="180" height="150" rx="6" fill="#fff" stroke="#dde1e8" />
+    <line x1="28" y1="154" x2="192" y2="40" stroke="#e0464e" stroke-width="2" />
+    {strong.map(([x, y]) => <circle cx={x} cy={y} r="4" fill="#2563eb" />)}
+    <text x="110" y="190" class="tb c">R² ≈ 0.9 (매우 강한 설명력)</text>
+    <rect x="240" y="20" width="180" height="150" rx="6" fill="#fff" stroke="#dde1e8" />
+    <line x1="248" y1="144" x2="412" y2="76" stroke="#e0464e" stroke-width="2" />
+    {weak.map(([x, y]) => <circle cx={x} cy={y} r="4" fill="#2563eb" />)}
+    <text x="330" y="190" class="tb c">R² ≈ 0.4 (중간 정도 설명력)</text>
+  </svg>
+  <figcaption>결정계수 R² = 1 − (오차 제곱의 합 ÷ 평균과의 차이 제곱의 합). 1에 가까울수록 모델이 데이터를 잘 설명한다.</figcaption>
+</figure>

@@ -1,0 +1,154 @@
+---
+// 펭귄 데이터로 결정트리, 로지스틱 회귀, k-최근접 이웃의 분류 경계와 혼동 행렬 비교
+interface Props { algo?: 'tree' | 'lr' | 'knn'; lock?: boolean; title?: string }
+const { algo = 'tree', lock = false, title = '분류 실험실: 펭귄 종 분류하기' } = Astro.props;
+---
+<div class="widget cl" data-classify data-algo={algo} data-lock={lock ? '1' : ''}>
+  <p class="widget-title">{title}</p>
+  <p class="widget-help">알고리즘과 설정을 바꾸면 배경색(클래스 영역)과 경계가 달라집니다. 점은 훈련 데이터(70%), 테두리만 있는 점은 테스트 데이터(30%)입니다. 그래프를 누르면 그 자리에 새 펭귄을 놓고 예측합니다.</p>
+  <div class="cl-ctl">
+    <span class="cl-algo" role="group" aria-label="알고리즘">
+      <button type="button" class="ghost" data-a="tree">결정트리</button>
+      <button type="button" class="ghost" data-a="lr">로지스틱 회귀</button>
+      <button type="button" class="ghost" data-a="knn">k-최근접 이웃</button>
+    </span>
+    <label data-p="tree">최대 깊이 <input type="range" min="1" max="8" value="2" data-depth /> <b data-depth-v></b></label>
+    <label data-p="knn">k <input type="range" min="1" max="25" value="3" data-k /> <b data-k-v></b></label>
+    <label data-p="knn"><input type="checkbox" checked data-norm /> 최소-최대 정규화</label>
+  </div>
+  <div class="cl-ctl">
+    <label>x축 <select data-x></select></label>
+    <label>y축 <select data-y></select></label>
+  </div>
+  <div class="cl-grid">
+    <svg data-svg viewBox="0 0 440 340" role="img" aria-label="펭귄 데이터 산점도와 분류 영역"></svg>
+    <div class="cl-side">
+      <p class="cl-acc" data-acc></p>
+      <table class="cl-cm" data-cm></table>
+      <p class="cl-note" data-note></p>
+      <p class="cl-pred" data-pred aria-live="polite"></p>
+    </div>
+  </div>
+  <p class="cl-legend" data-legend></p>
+</div>
+
+<style>
+  .cl-ctl { display: flex; flex-wrap: wrap; gap: 0.6rem 1.2rem; align-items: center; margin-bottom: 0.6rem; font-size: 0.92rem; }
+  .cl-algo { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+  .cl-algo button { padding: 0.3em 0.8em; font-size: 0.9rem; }
+  .cl-ctl label { display: inline-flex; gap: 0.4rem; align-items: center; }
+  .cl-ctl [hidden] { display: none; }
+  .cl-ctl input[type='range'] { width: 7rem; }
+  .cl-ctl select { font: inherit; padding: 0.2rem 0.4rem; border-radius: 6px; border: 1.5px solid var(--line-strong); }
+  .cl-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+  .cl-grid svg { width: 100%; height: auto; display: block; border-radius: var(--radius-s); background: #fff; border: 1px solid var(--line); cursor: crosshair; }
+  .cl-acc { font-weight: 700; margin: 0 0 0.5rem; line-height: 1.6; }
+  .cl-cm { font-size: 0.86rem; width: 100%; border-collapse: collapse; margin-bottom: 0.4rem; }
+  .cl-cm :global(td), .cl-cm :global(th) { text-align: center; padding: 0.3em; border: 1px solid var(--line); }
+  .cl-cm :global(td.ok) { background: var(--pos-soft); font-weight: 700; }
+  .cl-cm :global(td.bad) { background: var(--neg-soft); font-weight: 700; }
+  .cl-note { font-size: 0.85rem; color: var(--muted); margin: 0.2rem 0; }
+  .cl-pred { font-weight: 650; margin: 0.4rem 0 0; }
+  .cl-legend { font-size: 0.85rem; margin: 0.5rem 0 0; display: flex; gap: 1rem; flex-wrap: wrap; }
+  .cl-legend :global(i) { display: inline-block; width: 0.75rem; height: 0.75rem; border-radius: 50%; margin-right: 0.3rem; vertical-align: -1px; }
+  @media (max-width: 760px) { .cl-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  import { loadPenguins, NUM, KO, UNIT, SPECIES, SP_KO, SP_COLOR, col } from '../scripts/penguins';
+  import { stratifiedSplit, minmax, knn, tree, treePredict, treeDepth, logistic, confusion, accuracy, type Pt } from '../scripts/ml';
+
+  const SOFT: Record<string, string> = { Adelie: '#dbe6fb', Chinstrap: '#fbdcde', Gentoo: '#fcecc8' };
+
+  document.querySelectorAll<HTMLElement>('[data-classify]').forEach(async (root) => {
+    const rows = (await loadPenguins()).filter((r) => r.slice(0, 6).every((v) => v !== null));
+    const y = rows.map((r) => r[0] as string);
+    const { train, test } = stratifiedSplit(y, 0.3, 42);
+    const $ = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const svg = $<SVGSVGElement>('[data-svg]');
+    const sx = $<HTMLSelectElement>('[data-x]'), sy = $<HTMLSelectElement>('[data-y]');
+    const depth = $<HTMLInputElement>('[data-depth]'), kk = $<HTMLInputElement>('[data-k]'), norm = $<HTMLInputElement>('[data-norm]');
+    NUM.forEach((c) => { sx.add(new Option(KO[c], c)); sy.add(new Option(KO[c], c)); });
+    sx.value = 'flipper_length_mm'; sy.value = 'culmen_length_mm';
+    let algo = root.dataset.algo || 'tree';
+    if (root.dataset.lock) root.querySelector<HTMLElement>('.cl-algo')!.hidden = true;
+    let probe: Pt | null = null;
+    $('[data-legend]').innerHTML = SPECIES.map((s) => `<span><i style="background:${SP_COLOR[s]}"></i>${SP_KO[s]}</span>`).join('') +
+      '<span><i style="background:#fff;border:2px solid #3a4560"></i>테스트 데이터</span>';
+
+    const W = 440, H = 340, L = 50, R = 12, T = 12, B = 42;
+    function draw() {
+      root.querySelectorAll<HTMLButtonElement>('[data-a]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.a === algo)));
+      root.querySelectorAll<HTMLElement>('[data-p]').forEach((el) => (el.hidden = el.dataset.p !== algo));
+      $('[data-depth-v]').textContent = depth.value; $('[data-k-v]').textContent = kk.value;
+      const fx = col(sx.value), fy = col(sy.value);
+      const X: Pt[] = rows.map((r) => [r[fx] as number, r[fy] as number]);
+      const Xtr = train.map((i) => X[i]), ytr = train.map((i) => y[i]);
+      let model: { predict: (x: Pt) => string }, note = '';
+      let nbOf: ((x: Pt) => { i: number }[]) | null = null;
+      if (algo === 'tree') {
+        const t = tree(Xtr, ytr, +depth.value);
+        model = { predict: (x) => treePredict(t, x) };
+        note = `실제로 만들어진 트리 깊이 ${treeDepth(t)}. ` + (t.leaf ? '' : `첫 분할(루트 노드): ${KO[t.f ? sy.value : sx.value]} ≤ ${t.t.toFixed(1)}`);
+      } else if (algo === 'lr') {
+        model = logistic(Xtr, ytr);
+        note = '로지스틱 회귀는 클래스마다 확률을 계산해 가장 큰 클래스를 고릅니다. 경계가 직선이에요(선형 분류).';
+      } else {
+        const m = knn(Xtr, ytr, +kk.value, norm.checked ? minmax(Xtr) : undefined);
+        model = m; nbOf = m.neighbors;
+        note = norm.checked ? '정규화한 값으로 거리를 잽니다.' : '정규화하지 않은 원래 값으로 거리를 잽니다. 범위가 큰 속성이 거리를 좌우해요.';
+      }
+      const xs = X.map((p) => p[0]), ys = X.map((p) => p[1]);
+      const pad = (a: number[]) => { const lo = Math.min(...a), hi = Math.max(...a), d = (hi - lo) * 0.06; return [lo - d, hi + d]; };
+      const [x0, x1] = pad(xs), [y0, y1] = pad(ys);
+      const px = (v: number) => L + ((v - x0) / (x1 - x0)) * (W - L - R), py = (v: number) => H - B - ((v - y0) / (y1 - y0)) * (H - T - B);
+      const ix = (p: number) => x0 + ((p - L) / (W - L - R)) * (x1 - x0), iy = (p: number) => y0 + ((H - B - p) / (H - T - B)) * (y1 - y0);
+      let s = '';
+      const NX = 66, NY = 48, cw = (W - L - R) / NX, ch = (H - T - B) / NY;
+      for (let a = 0; a < NX; a++) for (let b = 0; b < NY; b++) {
+        const c = model.predict([ix(L + (a + 0.5) * cw), iy(T + (b + 0.5) * ch)]);
+        s += `<rect x="${(L + a * cw).toFixed(1)}" y="${(T + b * ch).toFixed(1)}" width="${(cw + 0.6).toFixed(1)}" height="${(ch + 0.6).toFixed(1)}" fill="${SOFT[c]}"/>`;
+      }
+      for (let t = 0; t <= 4; t++) {
+        const vx = x0 + ((x1 - x0) * t) / 4, vy = y0 + ((y1 - y0) * t) / 4;
+        s += `<text x="${px(vx)}" y="${H - B + 16}" font-size="11" text-anchor="middle" fill="#5b6478">${vx.toFixed(0)}</text>`;
+        s += `<text x="${L - 6}" y="${py(vy) + 4}" font-size="11" text-anchor="end" fill="#5b6478">${vy.toFixed(sy.value === 'body_mass_g' ? 0 : 1)}</text>`;
+      }
+      train.forEach((i) => { s += `<circle cx="${px(X[i][0])}" cy="${py(X[i][1])}" r="3.4" fill="${SP_COLOR[y[i]]}" fill-opacity=".85"/>`; });
+      test.forEach((i) => { s += `<circle cx="${px(X[i][0])}" cy="${py(X[i][1])}" r="3.6" fill="#fff" stroke="${SP_COLOR[y[i]]}" stroke-width="2"/>`; });
+      let predTxt = '그래프를 눌러 새 펭귄의 종을 예측해 보세요.';
+      if (probe) {
+        const c = model.predict(probe);
+        if (nbOf) nbOf(probe).forEach(({ i }) => { const j = train[i]; s += `<line x1="${px(probe![0])}" y1="${py(probe![1])}" x2="${px(X[j][0])}" y2="${py(X[j][1])}" stroke="#172038" stroke-width="1.2" stroke-dasharray="3 2"/>`; });
+        s += `<circle cx="${px(probe[0])}" cy="${py(probe[1])}" r="8" fill="${SP_COLOR[c]}" stroke="#172038" stroke-width="2.5"/><text x="${px(probe[0])}" y="${py(probe[1]) + 4}" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">?</text>`;
+        predTxt = `${KO[sx.value]} ${probe[0].toFixed(1)}${UNIT[sx.value]}, ${KO[sy.value]} ${probe[1].toFixed(1)}${UNIT[sy.value]} → ${SP_KO[c]}펭귄으로 예측` + (nbOf ? ` (가까운 이웃 ${kk.value}마리의 다수결)` : '');
+      }
+      s += `<text x="${(L + W - R) / 2}" y="${H - 8}" font-size="12" font-weight="700" text-anchor="middle" fill="#172038">${KO[sx.value]} (${UNIT[sx.value]})</text>`;
+      s += `<text x="13" y="${(T + H - B) / 2}" font-size="12" font-weight="700" text-anchor="middle" fill="#172038" transform="rotate(-90 13 ${(T + H - B) / 2})">${KO[sy.value]} (${UNIT[sy.value]})</text>`;
+      svg.innerHTML = s;
+      (svg as any)._inv = { ix, iy };
+
+      const trAcc = accuracy(ytr, Xtr.map((x) => model.predict(x)));
+      const yte = test.map((i) => y[i]), pte = test.map((i) => model.predict(X[i]));
+      const teAcc = accuracy(yte, pte);
+      $('[data-acc]').innerHTML = `훈련 정확도 ${(trAcc * 100).toFixed(1)}%<br>테스트 정확도 ${(teAcc * 100).toFixed(1)}%` +
+        (trAcc - teAcc > 0.04 ? '<br><small style="color:var(--neg)">훈련보다 테스트가 많이 낮아요. 과적합일 수 있어요.</small>' : '');
+      const M = confusion(yte, pte, SPECIES);
+      $('[data-cm]').innerHTML = `<tr><th>실제 \\ 예측</th>${SPECIES.map((c) => `<th>${SP_KO[c]}</th>`).join('')}</tr>` +
+        M.map((r, i) => `<tr><th>${SP_KO[SPECIES[i]]}</th>${r.map((v, j) => `<td class="${i === j ? 'ok' : v ? 'bad' : ''}">${v}</td>`).join('')}</tr>`).join('');
+      $('[data-note]').textContent = '혼동 행렬(테스트 데이터): 대각선(파란 칸)이 맞힌 수, 빨간 칸이 헷갈린 수. ' + note;
+      $('[data-pred]').textContent = predTxt;
+    }
+    svg.addEventListener('click', (e) => {
+      const r = svg.getBoundingClientRect();
+      const p = [((e.clientX - r.left) / r.width) * W, ((e.clientY - r.top) / r.height) * H];
+      const inv = (svg as any)._inv;
+      probe = [inv.ix(p[0]), inv.iy(p[1])];
+      draw();
+    });
+    root.querySelectorAll<HTMLButtonElement>('[data-a]').forEach((b) => b.addEventListener('click', () => { algo = b.dataset.a!; draw(); }));
+    [depth, kk].forEach((el) => el.addEventListener('input', draw));
+    [norm, sx, sy].forEach((el) => el.addEventListener('change', () => { if (el !== norm) probe = null; draw(); }));
+    draw();
+  });
+</script>

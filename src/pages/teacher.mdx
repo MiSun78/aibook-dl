@@ -6,7 +6,7 @@ import Base from '../layouts/Base.astro';
 
 # 선생님용 운영 안내
 
-이 디지털 교과서는 교과서 Ⅱ '인공지능과 학습'(60~161쪽)과 같은 순서로 되어 있습니다. 각 절 제목 옆에 교과서 쪽수가, 교과서의 활동·실습·더 알아보기에는 같은 번호가 붙어 있어 종이 교과서와 나란히 펴 놓고 수업할 수 있습니다. 교과서에 없는 보조 활동은 '교과서 밖 활동'으로 표시했습니다. 지금은 Ⅱ-01과 Ⅱ-03이 완성되어 있고, Ⅱ-02는 준비 중입니다.
+이 디지털 교과서는 교과서 Ⅱ '인공지능과 학습'(60~161쪽)과 같은 순서로 되어 있습니다. 각 절 제목 옆에 교과서 쪽수가, 교과서의 활동·실습·더 알아보기에는 같은 번호가 붙어 있어 종이 교과서와 나란히 펴 놓고 수업할 수 있습니다. 교과서에 없는 보조 활동은 '교과서 밖 활동'으로 표시했습니다. Ⅱ-01, Ⅱ-02, Ⅱ-03이 모두 완성되어 있습니다.
 
 ## Ⅱ-01 기계학습과 데이터 (지도서 1~8차시)
 
@@ -28,7 +28,7 @@ import Base from '../layouts/Base.astro';
 
 ### 보내 주신 템플릿을 고친 부분
 
-실습 1 노트북에는 수행평가 템플릿(SDGs14 펭귄)의 탐색 부분을 교과서 실습 1 순서에 맞춰 정리해 넣었습니다. 템플릿 전체에서 고칠 점은 아래와 같고, 분류(실습 3)·회귀(실습 2)·군집(실습 4) 부분은 Ⅱ-02를 만들 때 고친 노트북으로 넣겠습니다.
+수행평가 템플릿 4개(SDGs14 펭귄 학생용·교사용, SDGs3 신체예측 학생용·교사용)를 아래처럼 고쳐 선생님 컴퓨터의 AIBook\수정본 폴더에 넣었습니다(학생 데이터가 들어 있을 수 있어 공개 사이트에는 올리지 않았습니다). 교사용 두 개는 처음부터 끝까지 실행해 확인했습니다. 펭귄 템플릿은 특징을 부리 길이 + 날개 길이로 바꾸고 정규화를 넣자 테스트 정확도가 0.742에서 0.97로 올라갑니다. 교과서 실습 2\~4 노트북에도 같은 원칙을 적용했습니다.
 
 | 템플릿 | 고칠 점 | 고친 방법 |
 |---|---|---|
@@ -42,7 +42,34 @@ import Base from '../layouts/Base.astro';
 | 신체(회귀) | 다중 선형 회귀의 회귀식이 목둘레 계수 하나만 출력함(계수 3개 중 2개 빠짐) | 모든 독립변수의 계수를 출력 |
 | 신체(회귀) | 히스토그램 설명의 `hue='종속변수'` — 허리둘레는 연속값이라 색 구분에 쓰기 어려움 | 회귀에서는 hue 없이 그리거나 산점도로 관계를 봄 |
 | 신체(회귀) | 이상치 함수의 주석 '그룹별'·`show_details` 인수가 쓰이지 않음 | 정리 |
+| 신체(회귀) | 받은 CSV는 UTF-8(BOM)인데 `encoding='cp949'`로 읽어 오류가 남. 엉덩이둘레 열 이름이 '엉덩이둘레_츠'로 깨져 있음 | cp949로 안 되면 utf-8-sig로 읽고, 열 이름을 '_cm'으로 고침 |
+| 신체(회귀) | 교사용 결과 확인: 단순 R² 약 0.47, 다중 R² 약 0.81 | 결론 표에 이 값을 참고값으로 씀 |
 | 군집(실습 4) | 큰 오류 없음. 결론 표의 실루엣 점수는 데이터·라이브러리 버전에 따라 조금 달라질 수 있음 | 표의 값을 '예시'로 표시하고, 학생 결과를 직접 적게 함 |
+
+## Ⅱ-02 기계학습 알고리즘 (지도서 9\~19차시)
+
+| 소단원 (교과서 쪽수) | 지도서 | 이 디지털 교과서에서 할 것 |
+|---|---|---|
+| 02-1 기계학습 유형 (88\~91) | 9차시 | 강화 학습 로봇 위젯(Q-러닝)으로 보상과 시행착오를 체험, 유형 고르기 8문항 |
+| 02-2 모델의 학습과 평가 (92\~95) | 10차시 | 활동 4는 티처블 머신으로, 당뇨병 데이터 분류·회귀 고르기, 과적합 위젯(다항식 차수) |
+| 02-3 회귀 (96\~105) | 11\~12차시 | '나의 선' 위젯(PhET 대신 쓸 수 있음)으로 오차 함수와 결정계수 익히기 → 실습 2 → 선택 활동 2·3 |
+| 02-4 분류 (106\~117) | 13\~16차시 | 분류 실험실(펭귄 데이터, 결정트리·로지스틱 회귀·kNN 경계와 혼동 행렬) → 간단 실습 → 실습 3 → 선택 활동 4·5 |
+| 02-5 군집 (118\~125) | 17\~19차시 | k-평균 한 단계씩 위젯(활동 6), 실습 4(엘보·실루엣 비교 포함), 선택 활동 6 |
+
+실습 2의 jeans.csv, 선택 활동 3·5·6, 실습 4의 데이터는 교과서 링크(캐글 등)에서 받아야 합니다. 실습 2 노트북은 선생님이 주신 '청소년_신체측정정보_16세_19세.csv'를 골라도 돌아가도록 했습니다(열 이름을 교과서와 같게 바꾸고 999.9 같은 이상치를 IQR로 지움).
+
+### 교과서에서 확인한 오류 (Ⅱ-02)
+
+| 쪽 | 교과서 내용 | 실제 |
+|---|---|---|
+| 96쪽 날개 설명 | 독립 변수: '예측하고자 하는 변수' | 독립 변수는 예측에 쓰는 입력 변수, 예측하려는 변수는 종속 변수 |
+| 98\~103쪽 | 엉덩이둘레 열 이름 `heap` | 영어로는 hip. 데이터 파일 열 이름이 heap이라 코드는 그대로 둠 |
+| 102\~103쪽 | 다중 회귀에서 '목둘레 회귀계수가 가장 크므로 가장 큰 영향' | 단위·범위가 다른 변수의 계수는 그대로 비교할 수 없음. 선생님 자료로 표준화해 비교하면 몸무게(4.98) > 엉덩이둘레(2.06) > 목둘레(0.11) 순. 교사용 노트북에 표준화 비교 칸을 넣음 |
+| 108쪽 날개 설명 | '거리 기반 알고리즘(최근접 이웃, 로지스틱 회귀)' | 거리 기반은 kNN. 로지스틱 회귀는 거리를 쓰지 않음(정규화하면 학습이 안정되는 것은 맞음) |
+| 111\~112쪽 | `train_test_split`에 `random_state` 없음 | 실행마다 결과가 다름. 노트북은 `stratify=y, random_state=42` |
+| 112쪽 트리 그림 | flight_length_mm | flipper_length_mm |
+| 114쪽 | 전체 데이터를 정규화한 뒤 나눔 | 테스트 데이터 정보가 섞임(데이터 누수). 노트북은 나눈 뒤 훈련 데이터로만 `fit` |
+| 115쪽 | 'Flase' | False |
 
 ## Ⅱ-03 남은 차시에 맞춘 운영 예시
 
@@ -80,6 +107,13 @@ import Base from '../layouts/Base.astro';
 |---|---|---|
 | 실습 1 (78\~83쪽) | [practice1_penguin_student.ipynb](/notebooks/practice1_penguin_student.ipynb) | [practice1_penguin_teacher.ipynb](/notebooks/practice1_penguin_teacher.ipynb) |
 | 선택 활동 지진 (86\~87쪽) | [activity_earthquake.ipynb](/notebooks/activity_earthquake.ipynb) | 같은 파일 |
+| 실습 2, 선택 활동 2 (98\~103쪽) | [practice2_jeans_student.ipynb](/notebooks/practice2_jeans_student.ipynb) | [practice2_jeans_teacher.ipynb](/notebooks/practice2_jeans_teacher.ipynb) |
+| 선택 활동 3 전복 (104\~105쪽) | [activity3_abalone.ipynb](/notebooks/activity3_abalone.ipynb) | 같은 파일 |
+| 간단 실습 과일·채소 (109쪽) | [practice_food_knn.ipynb](/notebooks/practice_food_knn.ipynb) | 같은 파일 |
+| 실습 3, 선택 활동 4 (110\~115쪽) | [practice3_penguin_student.ipynb](/notebooks/practice3_penguin_student.ipynb) | [practice3_penguin_teacher.ipynb](/notebooks/practice3_penguin_teacher.ipynb) |
+| 선택 활동 5 항공사 (116\~117쪽) | [activity5_airline.ipynb](/notebooks/activity5_airline.ipynb) | 같은 파일 |
+| 실습 4 (120\~122쪽) | [practice4_mall_student.ipynb](/notebooks/practice4_mall_student.ipynb) | [practice4_mall_teacher.ipynb](/notebooks/practice4_mall_teacher.ipynb) |
+| 선택 활동 6 카페 (124쪽) | [activity6_cafe.ipynb](/notebooks/activity6_cafe.ipynb) | 같은 파일 |
 | 실습 5 (137~140쪽) | [practice5_mnist_student.ipynb](/notebooks/practice5_mnist_student.ipynb) | [practice5_mnist_teacher.ipynb](/notebooks/practice5_mnist_teacher.ipynb) |
 | 활동 9 (145쪽) | [activity9_yolo.ipynb](/notebooks/activity9_yolo.ipynb) | [activity9_yolo_teacher.ipynb](/notebooks/activity9_yolo_teacher.ipynb) |
 | 실습 6 (149~153쪽) | [practice6_crack_student.ipynb](/notebooks/practice6_crack_student.ipynb) | [practice6_crack_teacher.ipynb](/notebooks/practice6_crack_teacher.ipynb) |
@@ -92,6 +126,9 @@ import Base from '../layouts/Base.astro';
 |---|---|---|
 | 02-01 (01-1, 01-2) | 기계학습으로 해결할 수 있는 문제를 찾고 필요한 데이터를 말한다 (활동 2, 3) | 문제 유형과 데이터 유형, 수집 방법을 근거를 들어 고르고, 편향성과 정당성까지 검토한다 |
 | 02-02 (01-3) | 실습 1을 실행해 결측치·이상치를 처리하고 결과를 기록한다 | 상자그림과 IQR로 이상치 기준을 계산해 설명하고, 산점도와 상관계수로 핵심 속성을 골라 근거를 댄다 |
+| 02-03 (02-1) | 문제에 알맞은 기계학습 유형을 고른다 (확인하기) | 유형을 고른 근거를 레이블·보상과 연결해 설명하고, 생활 속 문제를 유형별로 제시한다 |
+| 02-04 (02-2, 02-3) | 실습 2를 실행해 회귀계수, 절편, 결정계수를 기록한다 | 오차 함수와 결정계수를 해석하고, 과적합을 훈련·테스트 오차로 설명하며, 회귀계수 비교의 한계를 짚는다 |
+| 02-04 (02-4, 02-5) | 실습 3·4를 실행해 정확도·혼동 행렬·실루엣 점수를 기록한다 | 세 분류 알고리즘의 차이와 정규화의 필요(및 순서)를 설명하고, 알맞은 k를 엘보와 실루엣으로 근거를 들어 고른다 |
 | 02-05 (03-1) | 딥러닝 활용 분야를 탐색한다 (활동 8) | 퍼셉트론의 한계와 은닉층의 역할을 원리로 설명한다 (정리하기 1·2번), 활용 분야를 다양하게 탐색한다 |
 | 02-06 (03-2) | 실습 5에서 테스트 데이터로 성능을 평가하고 기록한다 | 설정을 바꿔 성능을 비교하고, 내가 쓴 숫자를 틀린 이유를 학습 데이터와 연결해 설명한다 |
 | 02-06 (03-3) | 컴퓨터 비전 기술의 활용 예를 찾고, 실습 6을 실행해 정확도와 혼동 행렬을 기록한다 | 합성곱 층·풀링 층의 역할을 필터와 특징맵으로 설명하고, 틀린 사진의 공통점과 전이 학습의 장점을 근거를 들어 설명한다 |
@@ -99,7 +136,7 @@ import Base from '../layouts/Base.astro';
 
 ## 학생 기록 모으기
 
-**구글 문서 학습지(권장).** 단원마다 구글 문서 학습지가 있습니다: [01-1 학습지](https://docs.google.com/document/d/1rOgRTlyBRf0QwHMxU_cgX4gTd1EIqmSXZJ3SeGzYASc/edit), [01-2 학습지](https://docs.google.com/document/d/1EL-Zh0vtwPJR1K0ONGMxK_I--fW0vlEh5vOOuYOHHSM/edit), [01-3 학습지](https://docs.google.com/document/d/1Dl6vhpd1cqkaRQd7GP1-t0OlHXbmwLfsOHs4GKWuRYw/edit), [03-1 학습지](https://docs.google.com/document/d/1eQd5JTBq60AkIeaWRrG45suPNh9kiX5ps7rp6rvxxRs/edit), [03-2 학습지](https://docs.google.com/document/d/11ejDgD3mApFvbUp00lJs2FOrUd2SkcrVn81ef8OZDYc/edit), [03-3 학습지](https://docs.google.com/document/d/1X5e8pNLh1aOivnRUZTny9nBnPfFtVOZEHDAtuVTdJrk/edit), [03-4 학습지](https://docs.google.com/document/d/17NzbvDT5GQfdekmpRRGYfRc_9WJZc_2xdKRy2IbfgeI/edit).
+**구글 문서 학습지(권장).** 단원마다 구글 문서 학습지가 있습니다: [01-1 학습지](https://docs.google.com/document/d/1rOgRTlyBRf0QwHMxU_cgX4gTd1EIqmSXZJ3SeGzYASc/edit), [01-2 학습지](https://docs.google.com/document/d/1EL-Zh0vtwPJR1K0ONGMxK_I--fW0vlEh5vOOuYOHHSM/edit), [01-3 학습지](https://docs.google.com/document/d/1Dl6vhpd1cqkaRQd7GP1-t0OlHXbmwLfsOHs4GKWuRYw/edit), [02-1 학습지](https://docs.google.com/document/d/1j6EmcGMVRrAL0eUUT2txnQVP0hxPsv5D_eQSDRSUWr8/edit), [02-2 학습지](https://docs.google.com/document/d/10PlOp0cmmB8bTz87z3B9m6q3e_q2bQxK0HxvlW6OVVI/edit), [02-3 학습지](https://docs.google.com/document/d/1bhwKlnjm0Rr-nIvsF83qxPCrnwrjzBwe5-Mpj9Mp8lw/edit), [02-4 학습지](https://docs.google.com/document/d/1h4Ye7o8NsJR3W14ku6HDYqKdrVfaRZr9VpP1N4EdvV4/edit), [02-5 학습지](https://docs.google.com/document/d/1_og0Gf_HubPBObhJm-LEwZBbsigwh0WSgjRu6cg8WfU/edit), [03-1 학습지](https://docs.google.com/document/d/1eQd5JTBq60AkIeaWRrG45suPNh9kiX5ps7rp6rvxxRs/edit), [03-2 학습지](https://docs.google.com/document/d/11ejDgD3mApFvbUp00lJs2FOrUd2SkcrVn81ef8OZDYc/edit), [03-3 학습지](https://docs.google.com/document/d/1X5e8pNLh1aOivnRUZTny9nBnPfFtVOZEHDAtuVTdJrk/edit), [03-4 학습지](https://docs.google.com/document/d/17NzbvDT5GQfdekmpRRGYfRc_9WJZc_2xdKRy2IbfgeI/edit).
 
 - 구글 클래스룸 과제에 학습지를 첨부하고 **학생별로 사본 제공**을 고르면 제출과 채점까지 클래스룸에서 할 수 있습니다.
 - 사이트 정리하기에 [내 학습지 만들기] 버튼을 켤 수도 있습니다. 원본 공유를 '학교 도메인 사용자 보기 가능' 이상으로 바꾼 뒤 src/config.ts의 `worksheetButton`을 `true`로 바꾸면 학생 드라이브에 사본을 만드는 버튼이 나타납니다. 지금은 꺼져 있습니다.

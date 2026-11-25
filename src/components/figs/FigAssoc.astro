@@ -1,0 +1,25 @@
+---
+import './fig.css';
+const R = [{ t: '빵', p: 70 }, { t: '달걀', p: 40 }, { t: '휴지', p: 20 }];
+---
+<figure class="fg">
+  <svg viewBox="0 0 420 190" role="img" aria-label="우유가 들어 있는 영수증의 70%에 빵, 40%에 달걀, 20%에 휴지가 함께 있다">
+    <rect x="16" y="20" width="110" height="150" rx="6" fill="#fff" stroke="#b9c0cc" />
+    <text x="71" y="44" class="tb c">영수증</text>
+    <line x1="30" y1="54" x2="112" y2="54" stroke="#dde1e8" />
+    <text x="30" y="76" class="t" style="font-weight:700">우유</text>
+    <text x="30" y="98" class="t">빵</text>
+    <text x="30" y="120" class="t">달걀</text>
+    <text x="30" y="142" class="t">…</text>
+    <text x="150" y="40" class="tb">우유를 산 고객이 함께 산 상품</text>
+    {R.map((r, i) => (
+      <g>
+        <text x="150" y={76 + i * 36} class="t">{r.t}</text>
+        <rect x="190" y={62 + i * 36} width={r.p * 2.2} height="20" rx="4" fill={i === 0 ? '#2563eb' : '#9ab8f5'} />
+        <text x={198 + r.p * 2.2} y={77 + i * 36} class="t" style="font-weight:700">{r.p}%</text>
+      </g>
+    ))}
+    <text x="150" y="176" class="ts">→ 우유 옆에 빵을 두면 함께 살 가능성이 높아진다.</text>
+  </svg>
+  <figcaption>연관 규칙: 어떤 항목이 나타날 때 다른 항목이 함께 나타날 가능성을 찾는다.</figcaption>
+</figure>

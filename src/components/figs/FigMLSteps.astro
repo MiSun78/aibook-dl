@@ -1,0 +1,27 @@
+---
+import './fig.css';
+const S = [
+  { t: '문제 정의하기', d: ['기계학습으로 풀 수 있는가?', '지도학습? 비지도학습?'] },
+  { t: '데이터 수집 및 전처리하기', d: ['수집 → 탐색적 분석', '→ 전처리 → 핵심 속성 추출'] },
+  { t: '모델 생성하기', d: ['유형·알고리즘 선정', '훈련 데이터로 학습'] },
+  { t: '모델 평가하기', d: ['테스트 데이터로 성능 평가'] },
+];
+---
+<figure class="fg">
+  <svg viewBox="0 0 360 330" role="img" aria-label="기계학습 모델 구현 4단계: 문제 정의, 데이터 수집 및 전처리, 모델 생성, 모델 평가. 평가 결과가 나쁘면 모델 생성으로 돌아간다">
+    <defs><marker id="fm-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#3a4560" /></marker></defs>
+    {S.map((s, i) => (
+      <g>
+        <rect x="14" y={12 + i * 80} width="290" height="62" rx="8" class={i === 2 ? 'boxb' : i === 3 ? 'boxh' : 'box'} />
+        <circle cx="38" cy={35 + i * 80} r="13" fill="#172038" />
+        <text x="38" y={40 + i * 80} class="tb c" style="fill:#fff">{i + 1}</text>
+        <text x="62" y={34 + i * 80} class="tb">{s.t}</text>
+        {s.d.map((d, j) => <text x="62" y={52 + i * 80 + j * 14} class="ts">{d}</text>)}
+        {i < 3 && <line x1="160" y1={74 + i * 80} x2="160" y2={90 + i * 80} class="arw" marker-end="url(#fm-a)" />}
+      </g>
+    ))}
+    <path d="M304 283 L340 283 L340 203 L308 203" class="arw" marker-end="url(#fm-a)" />
+    <text x="346" y="248" class="ts c" transform="rotate(90 346 248)">필요하면 수정</text>
+  </svg>
+  <figcaption>평가 결과가 좋지 않으면 단계 3으로 돌아가 알고리즘이나 설정을 바꾼다.</figcaption>
+</figure>

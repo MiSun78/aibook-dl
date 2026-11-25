@@ -1,0 +1,25 @@
+---
+import './fig.css';
+---
+<figure class="fg">
+  <svg viewBox="0 0 440 240" role="img" aria-label="날개 길이 205mm 이하인지로 먼저 나누고, 이하인 쪽을 부리 길이 44.1mm 이하인지로 다시 나누면 아델리, 턱끈, 젠투펭귄을 대부분 구분한다">
+    <rect x="150" y="12" width="140" height="44" rx="8" class="hot" />
+    <text x="220" y="32" class="tb c">날개 길이 ≤ 205?</text>
+    <text x="220" y="48" class="ts c" style="fill:#172038">루트 노드 · 334마리</text>
+    <path d="M190 56 L120 92" class="arw" /><text x="140" y="72" class="ts e">예</text>
+    <path d="M250 56 L340 150" class="arw" /><text x="306" y="96" class="ts">아니요</text>
+    <rect x="50" y="92" width="140" height="44" rx="8" class="box" />
+    <text x="120" y="112" class="tb c">부리 길이 ≤ 44.1?</text>
+    <text x="120" y="128" class="ts c">207마리</text>
+    <path d="M95 136 L70 168" class="arw" /><text x="72" y="154" class="ts e">예</text>
+    <path d="M145 136 L190 168" class="arw" /><text x="176" y="150" class="ts">아니요</text>
+    <rect x="12" y="168" width="116" height="52" rx="8" fill="#dbe6fb" stroke="#2563eb" />
+    <text x="70" y="190" class="tb c">아델리</text><text x="70" y="208" class="ts c">147마리 중 141</text>
+    <rect x="140" y="168" width="116" height="52" rx="8" fill="#fbdcde" stroke="#e0464e" />
+    <text x="198" y="190" class="tb c">턱끈</text><text x="198" y="208" class="ts c">60마리 중 56</text>
+    <rect x="290" y="150" width="116" height="52" rx="8" fill="#fcecc8" stroke="#f2a516" />
+    <text x="348" y="172" class="tb c">젠투</text><text x="348" y="190" class="ts c">127마리 중 119</text>
+    <text x="348" y="226" class="ts c">아래 칸: 단말 노드(클래스)</text>
+  </svg>
+  <figcaption>결정트리로 펭귄 종 분류하기(결측치를 지운 펭귄 데이터 전체로 계산한 예). 특징값을 기준으로 나누므로 정규화가 필요 없다.</figcaption>
+</figure>

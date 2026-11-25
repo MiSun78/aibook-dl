@@ -1,0 +1,99 @@
+---
+// 강화 학습: 에이전트가 보상을 받으며 길 찾기를 배우는 과정 (Q-러닝)
+---
+<div class="widget rl" data-rlgrid>
+  <p class="widget-title">강화 학습: 로봇이 보물 찾는 길 배우기</p>
+  <p class="widget-help">로봇(에이전트)은 처음에 길을 전혀 모릅니다. 한 칸 움직일 때마다 −1점, 구덩이에 빠지면 −10점, 보물에 닿으면 +10점(보상)을 받습니다. 시도를 거듭하며 점수가 높아지는 행동을 스스로 배우는지 지켜보세요.</p>
+  <div class="rl-ctl">
+    <button type="button" data-one>1번 시도</button>
+    <button type="button" class="ghost" data-many>50번 시도</button>
+    <button type="button" class="ghost" data-reset>처음부터</button>
+    <label><input type="checkbox" checked data-arrows /> 배운 행동(화살표) 보기</label>
+  </div>
+  <div class="rl-grid">
+    <svg data-svg viewBox="0 0 320 320" role="img" aria-label="5×5 격자 환경과 로봇의 이동 경로"></svg>
+    <div>
+      <p class="rl-stat" data-stat aria-live="polite"></p>
+      <svg data-chart viewBox="0 0 260 120" role="img" aria-label="시도마다 받은 점수"></svg>
+      <p class="rl-cap">시도마다 받은 점수(최근 50번)</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .rl-ctl { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; margin-bottom: 0.6rem; font-size: 0.92rem; }
+  .rl-ctl button { padding: 0.3em 0.8em; font-size: 0.9rem; }
+  .rl-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+  .rl-grid svg { width: 100%; height: auto; display: block; background: #fff; border: 1px solid var(--line); border-radius: var(--radius-s); }
+  .rl-grid svg[data-svg] { max-width: 340px; }
+  .rl-stat { font-weight: 650; line-height: 1.7; margin: 0 0 0.6rem; }
+  .rl-cap { font-size: 0.85rem; color: var(--muted); margin: 0.3rem 0 0; }
+  @media (max-width: 760px) { .rl-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  import { rng } from '../scripts/ml';
+  const N = 5, GOAL = '4,4', PITS = new Set(['1,3', '3,1', '2,3', '3,3']);
+  const MOVES = [[0, -1], [1, 0], [0, 1], [-1, 0]]; // 위, 오른쪽, 아래, 왼쪽
+  const ARROW = ['↑', '→', '↓', '←'];
+  document.querySelectorAll<HTMLElement>('[data-rlgrid]').forEach((root) => {
+    const $ = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const svg = $<SVGSVGElement>('[data-svg]'), chart = $<SVGSVGElement>('[data-chart]'), arrows = $<HTMLInputElement>('[data-arrows]');
+    let Q: Record<string, number[]> = {}, scores: number[] = [], path: number[][] = [], r = rng(5);
+    const q = (s: string) => (Q[s] ||= [0, 0, 0, 0]);
+    function episode() {
+      let x = 0, y = 0, total = 0; path = [[0, 0]];
+      const eps = Math.max(0.05, 0.4 * Math.pow(0.95, scores.length));
+      for (let t = 0; t < 60; t++) {
+        const s = `${x},${y}`, qs = q(s);
+        const best = Math.max(...qs);
+        const a = r() < eps ? Math.floor(r() * 4) : qs.map((v, i) => (v === best ? i : -1)).filter((i) => i >= 0)[Math.floor(r() * qs.filter((v) => v === best).length)];
+        const nx = Math.min(N - 1, Math.max(0, x + MOVES[a][0])), ny = Math.min(N - 1, Math.max(0, y + MOVES[a][1]));
+        const ns = `${nx},${ny}`;
+        const rew = ns === GOAL ? 10 : PITS.has(ns) ? -10 : -1;
+        const end = ns === GOAL || PITS.has(ns);
+        qs[a] += 0.5 * (rew + (end ? 0 : 0.9 * Math.max(...q(ns))) - qs[a]);
+        total += rew; x = nx; y = ny; path.push([x, y]);
+        if (end) break;
+      }
+      scores.push(total);
+    }
+    function draw() {
+      const S = 60, O = 10;
+      let s = '';
+      for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+        const k = `${i},${j}`;
+        const fill = k === GOAL ? '#fdf3dc' : PITS.has(k) ? '#3a4560' : '#fff';
+        s += `<rect x="${O + i * S}" y="${O + j * S}" width="${S}" height="${S}" fill="${fill}" stroke="#dde1e8"/>`;
+        if (k === GOAL) s += `<text x="${O + i * S + S / 2}" y="${O + j * S + 36}" font-size="13" font-weight="800" text-anchor="middle" fill="#9a6a00">보물 +10</text>`;
+        else if (PITS.has(k)) s += `<text x="${O + i * S + S / 2}" y="${O + j * S + 36}" font-size="12" font-weight="700" text-anchor="middle" fill="#fff">구덩이 −10</text>`;
+        else if (arrows.checked && Q[k] && Q[k].some((v) => v !== 0)) {
+          const best = Q[k].indexOf(Math.max(...Q[k]));
+          s += `<text x="${O + i * S + S / 2}" y="${O + j * S + 40}" font-size="26" text-anchor="middle" fill="#2563eb" fill-opacity=".55">${ARROW[best]}</text>`;
+        }
+      }
+      if (path.length) {
+        s += `<path d="${path.map((p, i) => `${i ? 'L' : 'M'}${O + p[0] * S + S / 2} ${O + p[1] * S + S / 2}`).join('')}" fill="none" stroke="#e0464e" stroke-width="3" stroke-opacity=".7" stroke-linejoin="round"/>`;
+        const last = path[path.length - 1];
+        s += `<circle cx="${O + last[0] * S + S / 2}" cy="${O + last[1] * S + S / 2}" r="12" fill="#e0464e" stroke="#172038" stroke-width="2"/>`;
+      }
+      s += `<text x="${O + S / 2}" y="${O + 14}" font-size="11" text-anchor="middle" fill="#5b6478">출발</text>`;
+      svg.innerHTML = s;
+      const last = scores[scores.length - 1];
+      $('[data-stat]').innerHTML = scores.length
+        ? `시도 ${scores.length}번째 · 이번 점수 ${last}점 · ${path.length - 1}칸 이동<br>${last > 0 ? '보물을 찾았어요!' : scores.length >= 30 ? '이번에는 일부러 새 행동을 시도(탐험)하다가 실패했어요.' : '이번에는 보물에 닿지 못했어요.'} ${scores.length < 10 ? '처음엔 무작위로 움직여요.' : scores.slice(-5).every((v) => v === 3) ? '가장 짧은 길(8칸, 3점)을 배웠어요.' : '점점 좋은 행동을 찾고 있어요.'}`
+        : '[1번 시도]를 눌러 로봇을 움직여 보세요.';
+      const rec = scores.slice(-50), CW = 260, CH = 120;
+      const cy = (v: number) => 10 + ((10 - Math.max(-30, v)) / 40) * (CH - 20);
+      let c = `<line x1="34" y1="${cy(0)}" x2="${CW}" y2="${cy(0)}" stroke="#b9c0cc" stroke-dasharray="3 3"/><text x="4" y="${cy(0) - 3}" font-size="10" fill="#5b6478">0점</text>`;
+      c += `<text x="4" y="${cy(10) + 9}" font-size="10" fill="#5b6478">+10</text><text x="4" y="${cy(-30) - 2}" font-size="10" fill="#5b6478">−30</text>`;
+      rec.forEach((v, i) => { const w = (CW - 34) / 50; c += `<rect x="${34 + i * w + 0.5}" y="${Math.min(cy(v), cy(0))}" width="${w - 1}" height="${Math.abs(cy(v) - cy(0)) || 1}" fill="${v > 0 ? '#2563eb' : '#e0464e'}"/>`; });
+      chart.innerHTML = c;
+    }
+    $('[data-one]').addEventListener('click', () => { episode(); draw(); });
+    $('[data-many]').addEventListener('click', () => { for (let i = 0; i < 50; i++) episode(); draw(); });
+    $('[data-reset]').addEventListener('click', () => { Q = {}; scores = []; path = []; r = rng(5); draw(); });
+    arrows.addEventListener('change', draw);
+    draw();
+  });
+</script>

@@ -1,0 +1,108 @@
+---
+// 모델의 복잡도(다항식 차수)를 바꾸며 과소적합, 최적화, 과적합 살펴보기
+---
+<div class="widget of" data-overfit>
+  <p class="widget-title">과소적합, 최적화, 과적합 살펴보기</p>
+  <p class="widget-help">파란 점(훈련 데이터)으로 곡선 모델을 학습시키고, 주황 점(테스트 데이터)으로 평가합니다. 모델의 복잡도를 높여 가며 두 오차가 어떻게 변하는지 보세요.</p>
+  <div class="of-ctl">
+    <label>모델의 복잡도(다항식 차수) <input type="range" min="1" max="9" value="1" data-deg /> <b data-degv></b></label>
+    <button type="button" class="ghost" data-new>새 데이터</button>
+  </div>
+  <div class="of-grid">
+    <svg data-svg viewBox="0 0 420 280" role="img" aria-label="훈련 데이터와 테스트 데이터, 학습한 곡선"></svg>
+    <div>
+      <p class="of-verdict" data-verdict aria-live="polite"></p>
+      <svg data-err viewBox="0 0 260 170" role="img" aria-label="차수에 따른 훈련 오차와 테스트 오차"></svg>
+      <p class="of-legend"><span><i style="background:#2563eb"></i>훈련 오차</span><span><i style="background:#f2a516"></i>테스트 오차</span></p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .of-ctl { display: flex; flex-wrap: wrap; gap: 0.6rem 1.2rem; align-items: center; margin-bottom: 0.6rem; font-size: 0.92rem; }
+  .of-ctl label { display: inline-flex; gap: 0.4rem; align-items: center; }
+  .of-ctl input[type='range'] { width: 10rem; }
+  .of-ctl button { padding: 0.3em 0.8em; font-size: 0.9rem; }
+  .of-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+  .of-grid svg { width: 100%; height: auto; display: block; background: #fff; border: 1px solid var(--line); border-radius: var(--radius-s); }
+  .of-verdict { font-weight: 700; margin: 0 0 0.5rem; min-height: 3em; }
+  .of-legend { font-size: 0.85rem; display: flex; gap: 1rem; margin: 0.4rem 0 0; }
+  .of-legend i { display: inline-block; width: 0.75rem; height: 0.75rem; border-radius: 50%; margin-right: 0.3rem; vertical-align: -1px; }
+  @media (max-width: 760px) { .of-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  import { rng, gauss } from '../scripts/ml';
+  // 최소제곱 다항식 (x는 -1~1)
+  function polyfit(x: number[], y: number[], d: number) {
+    const n = d + 1;
+    const A = Array.from({ length: n }, () => new Array(n + 1).fill(0));
+    x.forEach((xi, k) => {
+      const p = Array.from({ length: n }, (_, i) => xi ** i);
+      for (let i = 0; i < n; i++) { for (let j = 0; j < n; j++) A[i][j] += p[i] * p[j]; A[i][n] += p[i] * y[k]; }
+    });
+    for (let i = 0; i < n; i++) A[i][i] += 1e-9;
+    for (let i = 0; i < n; i++) {
+      let m = i; for (let r = i + 1; r < n; r++) if (Math.abs(A[r][i]) > Math.abs(A[m][i])) m = r;
+      [A[i], A[m]] = [A[m], A[i]];
+      for (let r = 0; r < n; r++) if (r !== i) { const f = A[r][i] / A[i][i]; for (let c = i; c <= n; c++) A[r][c] -= f * A[i][c]; }
+    }
+    const w = A.map((row, i) => row[n] / row[i]);
+    return (v: number) => w.reduce((s, wi, i) => s + wi * v ** i, 0);
+  }
+  document.querySelectorAll<HTMLElement>('[data-overfit]').forEach((root) => {
+    const $ = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const deg = $<HTMLInputElement>('[data-deg]'), svg = $<SVGSVGElement>('[data-svg]'), err = $<SVGSVGElement>('[data-err]');
+    const truth = (x: number) => 0.8 * Math.sin(3.2 * x);
+    let seed = 4, tx: number[] = [], ty: number[] = [], vx: number[] = [], vy: number[] = [], curve: number[][] = [];
+    function make() {
+      const r = rng(seed);
+      tx = Array.from({ length: 10 }, (_, i) => -0.95 + (1.9 * i) / 9 + (r() - 0.5) * 0.08);
+      ty = tx.map((x) => truth(x) + gauss(r) * 0.2);
+      vx = Array.from({ length: 30 }, () => -0.95 + r() * 1.9);
+      vy = vx.map((x) => truth(x) + gauss(r) * 0.2);
+      curve = Array.from({ length: 9 }, (_, i) => {
+        const f = polyfit(tx, ty, i + 1);
+        const mse = (xs: number[], ys: number[]) => xs.reduce((s, x, k) => s + (ys[k] - f(x)) ** 2, 0) / xs.length;
+        return [mse(tx, ty), mse(vx, vy)];
+      });
+    }
+    function draw() {
+      const d = +deg.value; $('[data-degv]').textContent = String(d);
+      const f = polyfit(tx, ty, d);
+      const W = 420, H = 280, P = 14;
+      const px = (x: number) => P + ((x + 1) / 2) * (W - 2 * P), py = (y: number) => H / 2 - y * (H / 2 - P) / 1.4;
+      let s = `<defs><clipPath id="ofc"><rect x="0" y="0" width="${W}" height="${H}"/></clipPath></defs><g clip-path="url(#ofc)">`;
+      let path = '';
+      for (let i = 0; i <= 200; i++) { const x = -1 + (2 * i) / 200; path += `${i ? 'L' : 'M'}${px(x).toFixed(1)} ${Math.max(-50, Math.min(H + 50, py(f(x)))).toFixed(1)}`; }
+      s += `<path d="${path}" fill="none" stroke="#172038" stroke-width="2.6"/>`;
+      tx.forEach((x, i) => (s += `<circle cx="${px(x)}" cy="${py(ty[i])}" r="5" fill="#2563eb"/>`));
+      vx.forEach((x, i) => (s += `<rect x="${px(x) - 3.5}" y="${py(vy[i]) - 3.5}" width="7" height="7" fill="#f2a516" stroke="#172038" stroke-width="1"/>`));
+      svg.innerHTML = s + '</g>';
+      const [tr, te] = curve[d - 1];
+      const best = curve.reduce((b, c, i) => (c[1] < curve[b][1] ? i : b), 0) + 1;
+      const [btr, bte] = curve[best - 1];
+      $('[data-verdict]').innerHTML = (d < best && te > bte * 1.4 ? '과소적합: 모델이 너무 단순해서 훈련 데이터의 흐름도 잘 못 따라가요.' :
+        d > best && (te > bte * 1.4 || tr < btr * 0.25) ? '과적합: 훈련 데이터에 너무 딱 맞춰져서(훈련 오차가 0에 가까움) 새 데이터에서는 믿기 어려워요.' :
+        '최적화: 훈련 데이터와 테스트 데이터 모두에서 오차가 작아요.') +
+        `<br><small>훈련 오차 ${tr.toFixed(3)} / 테스트 오차 ${te.toFixed(3)} (MSE)</small>`;
+      // 오차 그래프 (로그 눈금)
+      const EW = 260, EH = 170, l = 30, b = 22;
+      const lg = (v: number) => Math.log10(Math.min(1, Math.max(v, 1e-3)));
+      const lo = -3, hi = 0;
+      const ex = (i: number) => l + ((i - 1) / 8) * (EW - l - 8), ey = (v: number) => EH - b - ((lg(v) - lo) / (hi - lo)) * (EH - b - 8);
+      let e = `<rect x="${ex(d) - 7}" y="4" width="14" height="${EH - b - 4}" fill="#fdf3dc"/>`;
+      [[0, '#2563eb'], [1, '#f2a516']].forEach(([k, c]) => {
+        e += `<path d="${curve.map((v, i) => `${i ? 'L' : 'M'}${ex(i + 1)} ${ey(v[k as number])}`).join('')}" fill="none" stroke="${c}" stroke-width="2.2"/>`;
+        curve.forEach((v, i) => (e += `<circle cx="${ex(i + 1)}" cy="${ey(v[k as number])}" r="2.6" fill="${c}"/>`));
+      });
+      [1, 3, 5, 7, 9].forEach((i) => (e += `<text x="${ex(i)}" y="${EH - 8}" font-size="10" text-anchor="middle" fill="#5b6478">${i}</text>`));
+      e += `<text x="${l - 4}" y="${ey(1) + 3}" font-size="10" text-anchor="end" fill="#5b6478">크다</text><text x="${l - 4}" y="${ey(0.001) + 3}" font-size="10" text-anchor="end" fill="#5b6478">작다</text>`;
+      e += `<text x="${EW - 8}" y="14" font-size="10" text-anchor="end" fill="#5b6478">x축: 복잡도(차수)</text>`;
+      err.innerHTML = e;
+    }
+    deg.addEventListener('input', draw);
+    $('[data-new]').addEventListener('click', () => { seed++; make(); draw(); });
+    make(); draw();
+  });
+</script>

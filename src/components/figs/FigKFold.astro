@@ -1,0 +1,19 @@
+---
+import './fig.css';
+---
+<figure class="fg">
+  <svg viewBox="0 0 420 210" role="img" aria-label="k가 5일 때 훈련 데이터를 5조각으로 나누고, 검증 조각을 바꿔 가며 다섯 번 훈련과 검증을 해서 평갓값의 평균을 성능으로 본다">
+    {[0, 1, 2, 3, 4].map((r) => (
+      <g>
+        <text x="16" y={34 + r * 34} class="ts">{r + 1}번째</text>
+        {[0, 1, 2, 3, 4].map((c) => (
+          <rect x={70 + c * 50} y={18 + r * 34} width="46" height="24" rx="3" class={c === r ? 'boxh' : 'boxb'} />
+        ))}
+        <text x={70 + r * 50 + 23} y={35 + r * 34} class="ts c" style="fill:#9a6a00;font-weight:700">검증</text>
+        <text x="330" y={35 + r * 34} class="t">→ 평갓값 {r + 1}</text>
+      </g>
+    ))}
+    <text x="210" y="200" class="tb c">5개 평갓값의 평균 = 모델의 성능 추정</text>
+  </svg>
+  <figcaption>k-폴드 교차 검증(k=5): 파란 칸으로 훈련하고 주황 칸으로 검증한다.</figcaption>
+</figure>

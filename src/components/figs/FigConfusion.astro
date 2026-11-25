@@ -1,0 +1,20 @@
+---
+import './fig.css';
+---
+<figure class="fg">
+  <svg viewBox="0 0 440 210" role="img" aria-label="혼동 행렬은 실젯값과 예측값을 비교한 표이다. TP, FP, FN, TN으로 정확도, 정밀도, 재현율을 계산한다">
+    <text x="190" y="20" class="tb c">예측값</text>
+    <text x="140" y="42" class="t c">아니요(Negative)</text><text x="240" y="42" class="t c">예(Positive)</text>
+    <text x="20" y="120" class="tb c" transform="rotate(-90 20 120)">실젯값</text>
+    <text x="80" y="86" class="t e">아니요</text><text x="80" y="146" class="t e">예</text>
+    <rect x="90" y="52" width="100" height="56" class="boxb" /><text x="140" y="78" class="tb c">TN</text><text x="140" y="96" class="ts c">맞게 '아니요'</text>
+    <rect x="190" y="52" width="100" height="56" fill="#fde8e9" stroke="#e0464e" /><text x="240" y="78" class="tb c">FP</text><text x="240" y="96" class="ts c">틀리게 '예'</text>
+    <rect x="90" y="108" width="100" height="56" fill="#fde8e9" stroke="#e0464e" /><text x="140" y="134" class="tb c">FN</text><text x="140" y="152" class="ts c">틀리게 '아니요'</text>
+    <rect x="190" y="108" width="100" height="56" class="boxb" /><text x="240" y="134" class="tb c">TP</text><text x="240" y="152" class="ts c">맞게 '예'</text>
+    <text x="305" y="70" class="t" style="font-weight:700">정확도</text><text x="305" y="88" class="ts">(TP+TN) ÷ 전체</text>
+    <text x="305" y="116" class="t" style="font-weight:700">정밀도</text><text x="305" y="134" class="ts">TP ÷ (TP+FP)</text>
+    <text x="305" y="162" class="t" style="font-weight:700">재현율</text><text x="305" y="180" class="ts">TP ÷ (TP+FN)</text>
+    <text x="190" y="196" class="ts c">파란 칸: 맞힘 · 빨간 칸: 틀림</text>
+  </svg>
+  <figcaption>혼동 행렬: 모델이 무엇을 맞히고 무엇과 헷갈렸는지 한눈에 보여 준다.</figcaption>
+</figure>

@@ -1,0 +1,18 @@
+---
+import './fig.css';
+---
+<figure class="fg">
+  <svg viewBox="0 0 400 180" role="img" aria-label="실루엣 점수는 같은 군집 안의 평균 거리 a와 가장 가까운 다른 군집까지의 평균 거리 b로 계산한다">
+    <ellipse cx="110" cy="80" rx="70" ry="50" fill="#e3ecfd" stroke="#2563eb" />
+    <ellipse cx="300" cy="80" rx="70" ry="50" fill="#fde8e9" stroke="#e0464e" />
+    {[[80, 60], [130, 60], [90, 105], [140, 100]].map(([x, y]) => <circle cx={x} cy={y} r="5" fill="#2563eb" />)}
+    {[[280, 60], [330, 70], [290, 105], [320, 100]].map(([x, y]) => <rect x={x - 5} y={y - 5} width="10" height="10" fill="#e0464e" />)}
+    <circle cx="110" cy="82" r="7" fill="#172038" />
+    <line x1="110" y1="82" x2="80" y2="60" stroke="#2563eb" stroke-width="2" /><line x1="110" y1="82" x2="140" y2="100" stroke="#2563eb" stroke-width="2" />
+    <text x="96" y="140" class="t c" style="font-weight:700;fill:#2563eb">a: 군집 안 평균 거리</text>
+    <line x1="117" y1="82" x2="280" y2="62" stroke="#e0464e" stroke-width="2" stroke-dasharray="5 3" />
+    <text x="210" y="56" class="t c" style="font-weight:700;fill:#e0464e">b: 다른 군집까지</text>
+    <text x="200" y="168" class="tb c">실루엣 = (b − a) ÷ (a와 b 중 큰 값) → 1에 가까울수록 좋음</text>
+  </svg>
+  <figcaption>군집 안은 촘촘하고(a가 작음) 다른 군집과는 멀수록(b가 큼) 실루엣 점수가 1에 가까워진다.</figcaption>
+</figure>

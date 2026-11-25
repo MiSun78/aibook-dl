@@ -1,0 +1,27 @@
+---
+import './fig.css';
+const P = [[22, 30], [30, 22], [36, 34], [26, 40], [80, 26], [90, 34], [84, 18], [60, 72], [70, 80], [52, 82], [64, 66]];
+const lab1 = [0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 1];
+const lab2 = [0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2];
+const C = ['#2563eb', '#e0464e', '#f2a516'];
+const panels = [
+  { t: '② 중심점 무작위', c: [[40, 60], [70, 40], [56, 54]], lab: null },
+  { t: '③ 가까운 중심점에 할당', c: [[40, 60], [70, 40], [56, 54]], lab: lab1 },
+  { t: '④ 중심점을 평균으로', c: [[28.5, 31.5], [78.5, 37.5], [60.7, 78]], lab: lab1 },
+  { t: '③ 다시 할당 → 반복', c: [[28.5, 31.5], [85, 26], [61.5, 75]], lab: lab2 },
+];
+const star = (x: number, y: number) => `M${x} ${y - 7} L${x + 2} ${y - 2} L${x + 7} ${y - 2} L${x + 3} ${y + 1.5} L${x + 4.5} ${y + 7} L${x} ${y + 3.5} L${x - 4.5} ${y + 7} L${x - 3} ${y + 1.5} L${x - 7} ${y - 2} L${x - 2} ${y - 2}Z`;
+---
+<figure class="fg">
+  <svg viewBox="0 0 480 160" role="img" aria-label="k-평균 군집화는 중심점을 정하고, 데이터를 가장 가까운 중심점에 할당하고, 중심점을 군집 평균으로 옮기는 과정을 중심점이 움직이지 않을 때까지 반복한다">
+    {panels.map((p, k) => (
+      <g transform={`translate(${8 + k * 118} 10)`}>
+        <rect width="110" height="110" rx="6" fill="#fff" stroke="#dde1e8" />
+        {P.map(([x, y], i) => <circle cx={x} cy={110 - y} r="4" fill={p.lab ? C[p.lab[i]] : '#9aa3b2'} />)}
+        {p.c.map(([x, y], j) => <path d={star(x, 110 - y)} fill={C[j]} stroke="#172038" stroke-width="1.5" />)}
+        <text x="55" y="132" class="ts c" style="fill:#172038;font-weight:700;font-size:10px">{p.t}</text>
+      </g>
+    ))}
+  </svg>
+  <figcaption>① 군집 수 k(여기서는 3)를 정한 뒤 ②~④를 중심점이 더 움직이지 않을 때까지 반복한다.</figcaption>
+</figure>

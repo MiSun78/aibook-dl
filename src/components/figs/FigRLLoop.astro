@@ -1,0 +1,21 @@
+---
+import './fig.css';
+---
+<figure class="fg">
+  <svg viewBox="0 0 420 200" role="img" aria-label="에이전트가 환경의 상태를 보고 행동하면 환경이 바뀌고 보상을 준다. 에이전트는 보상이 커지는 쪽으로 행동을 배운다">
+    <defs><marker id="rl-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#3a4560" /></marker></defs>
+    <rect x="20" y="66" width="120" height="64" rx="10" class="boxb" />
+    <text x="80" y="94" class="tb c">에이전트</text>
+    <text x="80" y="114" class="ts c">예) 게임 캐릭터</text>
+    <rect x="280" y="66" width="120" height="64" rx="10" class="boxh" />
+    <text x="340" y="94" class="tb c">환경</text>
+    <text x="340" y="114" class="ts c">예) 게임 맵</text>
+    <path d="M80 66 C80 20 340 20 340 62" class="arw" marker-end="url(#rl-a)" />
+    <text x="210" y="30" class="tb c">행동</text>
+    <text x="210" y="48" class="ts c">점프, 슬라이드, 왼쪽, 오른쪽</text>
+    <path d="M340 130 C340 180 80 180 80 134" class="arw" marker-end="url(#rl-a)" />
+    <text x="210" y="160" class="tb c">상태 + 보상</text>
+    <text x="210" y="178" class="ts c">점수 얻음 (+), 떨어짐 (−)</text>
+  </svg>
+  <figcaption>강화 학습: 에이전트는 시행착오를 거듭하며 보상을 최대로 받는 행동을 배운다.</figcaption>
+</figure>

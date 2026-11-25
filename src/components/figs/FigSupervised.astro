@@ -1,0 +1,23 @@
+---
+import './fig.css';
+const A = [[40, 60], [58, 48], [52, 80], [70, 66], [35, 90], [64, 92]];
+const B = [[130, 140], [150, 120], [160, 150], [140, 165], [175, 135], [118, 160]];
+const R = [[285, 170], [300, 160], [318, 150], [330, 138], [350, 132], [368, 118], [385, 106], [400, 100], [418, 84], [436, 78]];
+---
+<figure class="fg">
+  <svg viewBox="0 0 470 220" role="img" aria-label="분류는 데이터를 두 범주로 나누는 경계를 찾고, 회귀는 연속적인 값을 예측하는 선을 찾는다">
+    <text x="110" y="22" class="tb c">분류: 어느 범주일까?</text>
+    <rect x="20" y="32" width="190" height="160" rx="6" fill="#fff" stroke="#dde1e8" />
+    <line x1="30" y1="182" x2="200" y2="40" stroke="#172038" stroke-width="2" stroke-dasharray="6 4" />
+    {A.map(([x, y]) => <circle cx={x} cy={y} r="6" fill="#2563eb" />)}
+    {B.map(([x, y]) => <rect x={x - 6} y={y - 6} width="12" height="12" fill="#e0464e" />)}
+    <text x="50" y="186" class="ts">● 독버섯</text><text x="140" y="56" class="ts">■ 식용 버섯</text>
+    <text x="360" y="22" class="tb c">회귀: 값이 얼마일까?</text>
+    <rect x="260" y="32" width="200" height="160" rx="6" fill="#fff" stroke="#dde1e8" />
+    <line x1="272" y1="180" x2="450" y2="70" stroke="#e0464e" stroke-width="2.5" />
+    {R.map(([x, y], i) => <circle cx={x} cy={y + (i % 2 ? 9 : -7)} r="5" fill="#172038" fill-opacity=".8" />)}
+    <text x="360" y="208" class="ts c">인터넷 광고 횟수 → 판매량</text>
+    <text x="115" y="208" class="ts c">특징 → 클래스</text>
+  </svg>
+  <figcaption>지도학습: 정답이 범주이면 분류, 연속적인 수치이면 회귀로 해결한다.</figcaption>
+</figure>

@@ -1,0 +1,289 @@
+import Lesson from '../../layouts/Lesson.astro';
+import Sec from '../../components/Sec.astro';
+import Ask from '../../components/Ask.astro';
+import Record from '../../components/Record.astro';
+import Split from '../../components/Split.astro';
+import Colab from '../../components/Colab.astro';
+import ClassifyLab from '../../components/ClassifyLab.astro';
+import FigLinNonlin from '../../components/figs/FigLinNonlin.astro';
+import FigTree from '../../components/figs/FigTree.astro';
+import FigSigmoid from '../../components/figs/FigSigmoid.astro';
+import FigKNN from '../../components/figs/FigKNN.astro';
+import FigConfusion from '../../components/figs/FigConfusion.astro';
+
+<Lesson slug="02-4" ids={['s1', 'a5', 's2', 's3', 'food', 'p3', 'orange', 'opt4', 'opt5']}>
+
+<Sec id="s1" title="분류 모델" pages="106쪽">
+
+<Split>
+<div>
+
+**분류 모델**은 입력 데이터를 미리 정해 둔 여러 클래스 중 하나로 나누는 모델이다. 새 데이터가 들어오면 어느 클래스에 속하는지 예측한다. 예를 들어 메일 분류 모델은 메일의 내용, 보낸 사람, 들어 있는 링크 등 여러 특징을 보고 스팸인지 아닌지 정한다.
+
+분류 모델을 만들려면 **특징**(feature)과 **타깃**(target)이 필요하다. 타깃은 예측하려는 속성이고, 특징은 타깃을 예측하는 데 쓰는 속성이다.
+
+- **클래스**: 타깃의 범주. 예) 과일, 채소
+- **레이블**: 각 데이터의 실제 클래스(정답)
+
+| 당도 | 아삭함 | 식품(타깃) |
+|---|---|---|
+| 10 | 1 | 과일 |
+| 3 | 8 | 채소 |
+| 7 | 2 | 과일 |
+
+</div>
+<FigLinNonlin />
+</Split>
+
+분류 모델의 핵심 목표는 클래스 영역을 나누는 **경계**를 찾는 것이다. 경계가 직선(평면)이면 **선형 분류**, 곡선이거나 여러 조각으로 꺾이면 **비선형 분류**라고 한다. 분류 알고리즘에는 결정트리, 로지스틱 회귀, k-최근접 이웃 등이 있다.
+
+분류 문제의 예: 뇌종양인지 정상인지, 도로에 균열이 있는지, 마실 수 있는 물인지, 재활용 쓰레기의 종류
+
+</Sec>
+
+<Sec id="a5" title="분류 모델의 클래스 영역을 나누는 경계 확인하기" pages="106쪽" kind="활동 5">
+
+[Machine Learning Playground](https://ml-playground.com/)에서 분류 경계를 직접 확인해 보자.
+
+1. 빨간색, 보라색 버튼을 고르고 캔버스를 눌러 두 클래스의 데이터를 만든다.
+2. 기계학습 알고리즘과 매개 변수(Parameters)를 고른다.
+3. [Train]을 눌러 모델을 학습시키고, 클래스 영역을 나누는 경계를 확인한다.
+
+한 클래스를 다른 클래스가 둘러싸는 비선형 데이터를 만든 뒤 퍼셉트론(perceptron), 결정트리(decision tree), 인공 신경망(artificial neural network)으로 각각 학습시켜 보자. 어떤 알고리즘이 비선형 데이터를 잘 나누는가?
+
+<Ask>
+
+- 퍼셉트론의 경계는 어떤 모양인가? 결정트리와 인공 신경망의 경계는 어떻게 다른가?
+- 비선형 데이터를 잘 나누지 못한 알고리즘은 무엇이고, 그 까닭은 무엇일까?
+
+</Ask>
+
+</Sec>
+
+<Sec id="s2" title="결정트리, 로지스틱 회귀, k-최근접 이웃" pages="107~108쪽">
+
+### (1) 결정트리
+
+<Split>
+<div>
+
+**결정트리**(decision tree)는 나무를 거꾸로 세운 모양의 알고리즘이다. 맨 위 **루트 노드**에서 출발해 갈림길마다 특징에 대한 질문(분할 기준)으로 데이터를 나눈다.
+
+1. 데이터를 가장 잘 나누는 특징을 고른다.
+2. 그 특징의 분할 기준으로 데이터를 둘 이상의 하위 그룹으로 나눈다.
+3. 나뉜 하위 그룹에서 다시 기준을 골라 나누기를 되풀이한다.
+4. 모든 데이터가 한 클래스로 나뉘거나 정해 둔 종료 조건(예: 최대 깊이)에 이르면 멈춘다. 맨 끝 **단말 노드**에 클래스가 정해진다.
+
+특징값을 기준으로 나누므로 정규화가 필요 없다. 하지만 너무 깊이 나누면 트리가 지나치게 복잡해져 과적합이 생기기 쉽다.
+
+</div>
+<FigTree />
+</Split>
+
+여러 결정트리를 만들어 다수결로 결과를 정하는 **랜덤 포레스트**(random forest)는 결정트리보다 정확하고 과적합에 강하다.
+
+### (2) 로지스틱 회귀
+
+<Split>
+<div>
+
+**로지스틱 회귀**(logistic regression)는 선형 회귀에 **로지스틱 함수**를 적용한 알고리즘이다. 로지스틱 함수는 S자 곡선으로, 어떤 값이든 0~1 사이로 바꾼다. 이 값을 각 클래스에 속할 확률로 보고 분류한다. 예를 들어 점수로 합격 확률을 계산해 0.5 이상이면 합격, 아니면 불합격으로 분류한다.
+
+이름에 '회귀'가 들어 있지만 분류 알고리즘이다. 경계가 직선인 선형 분류 모델이고, 세 개 이상의 클래스도 분류할 수 있다. 학습이 잘되도록 특징을 정규화해서 쓰는 경우가 많다.
+
+</div>
+<FigSigmoid />
+</Split>
+
+### (3) k-최근접 이웃
+
+<Split>
+<div>
+
+**k-최근접 이웃**(kNN; k-Nearest Neighbor)은 예측할 데이터와 가장 가까운 k개의 데이터를 보고 예측하는 방법이다. 분류할 때는 가까운 k개 중 가장 많은 클래스로 정한다. k=3이고 가까운 3개가 파란색 2개, 빨간색 1개이면 파란색으로 분류한다.
+
+거리는 주로 **유클리디언 거리**(두 점 사이의 직선 거리)로 잰다. 두 점 (1, 1)과 (5, 4)의 유클리디언 거리는 √((5−1)² + (4−1)²) = 5이고, **맨해튼 거리**(가로, 세로로만 움직인 거리)는 |5−1| + |4−1| = 7이다. 거리로 판단하므로 특징의 범위가 크게 다르면 정규화가 꼭 필요하다.
+
+</div>
+<FigKNN />
+</Split>
+
+<ClassifyLab />
+
+<Ask label="해 보기">
+
+- 결정트리의 최대 깊이를 1, 2, 3, 8로 바꿔 보자. 깊이가 깊어지면 경계와 훈련·테스트 정확도는 어떻게 달라지는가?
+- 세 알고리즘의 분류 경계 모양을 비교해 보자. 어느 것이 선형 분류이고, 어느 것이 비선형 분류인가?
+- y축을 체질량으로 바꾸고 k-최근접 이웃에서 정규화를 껐다 켜 보자. 테스트 정확도가 어떻게 달라지는가? 그 까닭은 무엇일까?
+
+</Ask>
+
+</Sec>
+
+<Sec id="s3" title="분류 모델 성능 평가" pages="108쪽">
+
+<Split>
+<div>
+
+분류 모델의 대표적인 성능 지표는 **정확도**(accuracy)이다. 정확도는 전체 데이터 중 예측값과 실젯값이 같은 데이터의 비율이다.
+
+**혼동 행렬**(confusion matrix)은 실제 클래스와 예측 클래스를 비교해 모델이 각 클래스를 얼마나 맞히고 무엇과 헷갈렸는지 나타낸 표이다. 아래는 펭귄 종 분류 모델의 혼동 행렬 예이다. 대각선 칸이 맞힌 수이다.
+
+| 실제 \ 예측 | 아델리 | 턱끈 | 젠투 |
+|---|---|---|---|
+| 아델리 | **42** | 2 | 0 |
+| 턱끈 | 3 | **18** | 0 |
+| 젠투 | 0 | 0 | **36** |
+
+정확도 = (42 + 18 + 36) ÷ 101 ≈ 0.95
+
+</div>
+<FigConfusion />
+</Split>
+
+두 클래스(예/아니요)를 분류할 때는 혼동 행렬의 칸을 TP, TN, FP, FN이라고 부른다. 정확도 외에 **정밀도**와 **재현율**도 함께 본다(115쪽).
+
+- **정밀도** = TP ÷ (TP + FP): 모델이 '예'라고 한 것 중 실제로 '예'인 비율. 스팸 필터처럼 정상 메일을 스팸으로 잘못 거르는(FP) 일이 큰 문제일 때 중요하다.
+- **재현율** = TP ÷ (TP + FN): 실제 '예'인 것 중 모델이 '예'라고 찾아낸 비율. 암 진단처럼 실제 환자를 놓치는(FN) 일이 큰 문제일 때 중요하다.
+
+</Sec>
+
+<Sec id="food" title="당도와 아삭함으로 과일인지 채소인지 분류하기" pages="109쪽" kind="간단 실습">
+
+k-최근접 이웃으로 당도(sweet)와 아삭함(crunchy)을 보고 과일(fruit)인지 채소(vegetable)인지 분류해 보자. 데이터는 교과서 링크(bit.ly/food_data)의 `food.csv`이다.
+
+```python
+X = df[['sweet', 'crunchy']].values   # 특징: 열 여러 개는 대괄호를 두 번 쓴다
+y = df['class']                       # 타깃
+knn = KNeighborsClassifier(n_neighbors=3)   # k=3
+knn.fit(X, y)
+print(knn.predict([[2, 5]]))          # 당도 2, 아삭함 5 → 채소
+```
+
+두 특징의 범위가 비슷한 간단한 데이터라 정규화 없이 학습했다. 범위가 크게 다르면 `MinMaxScaler`로 정규화한 뒤 학습한다(76쪽).
+
+<Colab file="practice_food_knn.ipynb" title="간단 실습 과일·채소 분류하기" minutes="약 5분">
+
+food.csv를 올리지 않으면 연습용 데이터로 실행된다. 슬라이더로 k와 새 식품의 당도, 아삭함을 바꿔 본다.
+
+</Colab>
+
+</Sec>
+
+<Sec id="p3" title="펭귄 종 분류 모델 구현하기" pages="110~112쪽" kind="실습 3">
+
+**문제 상황**: 남극의 급격한 기후 변화로 펭귄의 서식지가 위협받고 있지만, 펭귄 종을 구별하기 어려워 보호 활동이 쉽지 않다. 펭귄의 특징으로 종을 분류하는 모델을 만들어 보자.
+
+| 단계 | 할 일 |
+|---|---|
+| 단계 1 문제 정의하기 | 펭귄 종(아델리, 턱끈, 젠투)을 분류하는 모델 만들기 |
+| 단계 2 데이터 수집 및 전처리하기 | penguins_size.csv 불러오기 → 결측치가 있는 행 지우기 → 특징(부리 길이, 부리 깊이, 날개 길이)과 타깃(종) 정하기 → 7:3으로 나누기 |
+| 단계 3 모델 생성하기 | 타깃이 범주이므로 지도학습의 분류 모델을 고른다. `DecisionTreeClassifier`로 결정트리를 학습하고 트리를 그린다. |
+| 단계 4 모델 평가하기 | 테스트 데이터로 분류 정확도를 구한다. |
+
+<Colab file="practice3_penguin_student.ipynb" title="실습 3 펭귄 종 분류하기" minutes="약 25분">
+
+1. 코랩에 `penguins_size.csv`를 올린다(실습 1과 같은 파일).
+2. 칸을 차례로 실행해 결정트리를 학습하고 트리 그림과 혼동 행렬을 본다.
+3. `max_depth` 슬라이더로 트리 깊이를 바꿔 테스트 정확도를 비교한다.
+4. 뒤쪽 칸이 선택 활동 4(로지스틱 회귀, k-최근접 이웃)이다.
+
+</Colab>
+
+알아 둘 코드
+
+```python
+df.dropna(axis=0, inplace=True)        # 결측치가 있는 행 지우기
+X = df[['culmen_length_mm', 'culmen_depth_mm', 'flipper_length_mm']]   # 특징
+y = df['species']                      # 타깃
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, stratify=y, random_state=42)
+dt = DecisionTreeClassifier()          # 결정트리 모델
+dt.fit(X_train, y_train)
+print(dt.score(X_test, y_test))        # 테스트 데이터 분류 정확도
+```
+
+교과서 코드에는 `random_state`가 없어 실행할 때마다 결과가 조금씩 다르다. 이 사이트의 노트북은 결과를 비교하기 쉽도록 `random_state=42`로 고정하고, `stratify=y`로 세 종이 훈련·테스트 데이터에 고르게 나뉘게 했다.
+
+<Ask>
+
+- 트리 그림에서 루트 노드에 쓰인 특징과 기준값은 무엇인가?
+- 훈련 정확도와 테스트 정확도를 비교해 보자. 차이가 크다면 무엇을 의심할 수 있는가?
+
+</Ask>
+
+</Sec>
+
+<Sec id="orange" title="펭귄 종 분류 모델 구현하기" pages="113쪽" kind="오렌지로 해 볼까?">
+
+같은 실습을 오렌지3로 할 수 있다. 데이터는 penguins_size.csv를 쓴다.
+
+1. **데이터 준비**: File에서 파일을 불러오고 species는 target, culmen_length_mm, culmen_depth_mm, flipper_length_mm은 feature, 나머지는 skip으로 정한 뒤 [Apply]를 누른다.
+2. **전처리**: File → Preprocess를 연결하고 결측치가 있는 행을 지운다(Remove rows with missing values).
+3. **데이터 나누기**: Preprocess → Data Sampler를 연결하고 훈련 데이터 비율을 70%로 정한다.
+4. **모델 생성**: Data Sampler → Tree, Data Sampler → Test and Score, Tree → Test and Score를 연결해 분류 정확도(CA)를 확인한다.
+5. **모델 평가**: Tree → Predictions, Data Sampler의 남은 데이터(Remaining Data) → Predictions를 연결해 테스트 데이터의 CA를 확인한다.
+
+Tree 위젯에서 이진 트리 만들기(Induce binary tree), 단말 노드의 최소 데이터 수, 최대 깊이(Limit the maximal tree depth) 등을 바꿀 수 있다. Tree Viewer 위젯을 연결하면 트리 모양을 볼 수 있다.
+
+</Sec>
+
+<Sec id="opt4" title="로지스틱 회귀, 최근접 이웃으로 펭귄 종 분류하기" pages="114~115쪽" kind="선택 활동 4">
+
+실습 3과 같은 데이터로 로지스틱 회귀와 k-최근접 이웃 모델을 만들고 결정트리와 비교해 보자. 실습 3 노트북의 뒤쪽 칸이 이 활동이다.
+
+**정규화하기**: k-최근접 이웃은 거리로 판단하므로 특징의 범위를 맞춰야 한다. 로지스틱 회귀도 정규화하면 학습이 안정된다. 이때 **데이터를 먼저 나눈 뒤 훈련 데이터로만 정규화 기준(최솟값, 최댓값)을 정하고**, 테스트 데이터는 그 기준으로 바꾸기만 한다. 테스트 데이터는 '처음 보는 데이터' 역할을 해야 하기 때문이다.
+
+```python
+scaler = MinMaxScaler()
+X_train_s = scaler.fit_transform(X_train)   # 훈련 데이터로 기준을 정하고 바꾸기
+X_test_s = scaler.transform(X_test)         # 테스트 데이터는 같은 기준으로 바꾸기만
+lr = LogisticRegression().fit(X_train_s, y_train)
+knn = KNeighborsClassifier(n_neighbors=5).fit(X_train_s, y_train)
+```
+
+**혼동 행렬 그리기**: `confusion_matrix(y_test, lr_pred)`로 혼동 행렬을 구하고 `sns.heatmap`으로 그린다. 행은 실젯값, 열은 예측값이고 순서는 Adelie, Chinstrap, Gentoo이다. 교과서의 예시 결과에서 로지스틱 회귀는 아델리와 젠투는 모두 맞혔지만 턱끈펭귄 3마리를 아델리로 잘못 분류했다.
+
+<Ask>
+
+- 결정트리, 로지스틱 회귀, k-최근접 이웃 중 테스트 정확도가 가장 높은 모델은 무엇인가?
+- 혼동 행렬에서 가장 많이 헷갈린 두 종은 무엇인가? 산점도를 보며 그 까닭을 생각해 보자.
+
+</Ask>
+
+</Sec>
+
+<Sec id="opt5" title="항공사의 고객 만족도를 높이기 위한 고객 서비스 모델 만들기" pages="116~117쪽" kind="선택 활동 5">
+
+**문제 상황**: 고객의 만족도를 높이려면 항공사는 어떤 서비스에 먼저 힘써야 할까? 항공사 고객 만족도 조사 데이터로 분류 모델을 만들어 중요한 서비스를 찾아보자.
+
+**데이터**: 캐글의 `airline_passenger_satisfaction.csv`. 와이파이, 온라인 예약, 좌석, 기내 엔터테인먼트, 청결 등 서비스 만족도(0~5점) 14개 항목과 최종 만족 여부(Satisfaction)가 들어 있다.
+
+<Colab file="activity5_airline.ipynb" title="선택 활동 5 항공사 고객 만족도 분류하기" minutes="약 15분">
+
+9~22번 열(서비스 만족도 14개)을 특징, 마지막 열(Satisfaction)을 타깃으로 정하고 7:3으로 나눈다. 결정트리와 로지스틱 회귀의 정확도를 비교하고, 결정트리의 루트 노드와 특징 중요도를 확인한다.
+
+</Colab>
+
+결정트리의 루트 노드에 쓰인 특징은 데이터를 가장 잘 나누는 특징이다. `dt.feature_importances_`로 각 특징이 분류에 얼마나 기여했는지(특징 중요도)도 볼 수 있다.
+
+<Ask>
+
+- 루트 노드에 쓰인 서비스와 특징 중요도 1위 서비스는 무엇인가? 항공사에 어떤 제안을 할 수 있을까?
+
+</Ask>
+
+</Sec>
+
+<section id="wrap" class="wrap">
+
+## 정리하기
+
+<Record id="c02-4" prompts={[
+  '결정트리, 로지스틱 회귀, k-최근접 이웃이 클래스를 정하는 방법을 각각 한두 문장으로 설명해 보자.',
+  '실습 3과 선택 활동 4에서 얻은 세 모델의 테스트 정확도를 적고, 혼동 행렬에서 알 수 있는 점을 정리해 보자.',
+  'k-최근접 이웃에 정규화가 필요한 까닭과, 정규화할 때 훈련 데이터로만 기준을 정해야 하는 까닭을 설명해 보자.',
+]} />
+
+</section>
+
+</Lesson>
