@@ -10,6 +10,7 @@ import FigTree from '../../components/figs/FigTree.astro';
 import FigSigmoid from '../../components/figs/FigSigmoid.astro';
 import FigKNN from '../../components/figs/FigKNN.astro';
 import FigConfusion from '../../components/figs/FigConfusion.astro';
+import DataFiles from '../../components/DataFiles.astro';
 
 <Lesson slug="02-4" ids={['s1', 'a5', 's2', 's3', 'food', 'p3', 'orange', 'opt4', 'opt5']}>
 
@@ -162,9 +163,11 @@ print(knn.predict([[2, 5]]))          # 당도 2, 아삭함 5 → 채소
 
 두 특징의 범위가 비슷한 간단한 데이터라 정규화 없이 학습했다. 범위가 크게 다르면 `MinMaxScaler`로 정규화한 뒤 학습한다(76쪽).
 
+<DataFiles files={['food.csv']} />
+
 <Colab file="practice_food_knn.ipynb" title="간단 실습 과일·채소 분류하기" minutes="약 5분">
 
-food.csv를 올리지 않으면 연습용 데이터로 실행된다. 슬라이더로 k와 새 식품의 당도, 아삭함을 바꿔 본다.
+첫 칸에서 food.csv를 바로 받는다(받지 못하면 연습용 데이터로 실행된다). 슬라이더로 k와 새 식품의 당도, 아삭함을 바꿔 본다.
 
 </Colab>
 
@@ -181,9 +184,11 @@ food.csv를 올리지 않으면 연습용 데이터로 실행된다. 슬라이�
 | 단계 3 모델 생성하기 | 타깃이 범주이므로 지도학습의 분류 모델을 고른다. `DecisionTreeClassifier`로 결정트리를 학습하고 트리를 그린다. |
 | 단계 4 모델 평가하기 | 테스트 데이터로 분류 정확도를 구한다. |
 
+<DataFiles files={['penguins_size.csv']} />
+
 <Colab file="practice3_penguin_student.ipynb" title="실습 3 펭귄 종 분류하기" minutes="약 25분">
 
-1. 코랩에 `penguins_size.csv`를 올린다(실습 1과 같은 파일).
+1. 첫 칸에서 '사이트에서 바로 받기'로 `penguins_size.csv`를 가져온다(실습 1과 같은 파일).
 2. 칸을 차례로 실행해 결정트리를 학습하고 트리 그림과 혼동 행렬을 본다.
 3. `max_depth` 슬라이더로 트리 깊이를 바꿔 테스트 정확도를 비교한다.
 4. 뒤쪽 칸이 선택 활동 4(로지스틱 회귀, k-최근접 이웃)이다.
@@ -257,6 +262,8 @@ knn = KNeighborsClassifier(n_neighbors=5).fit(X_train_s, y_train)
 **문제 상황**: 고객의 만족도를 높이려면 항공사는 어떤 서비스에 먼저 힘써야 할까? 항공사 고객 만족도 조사 데이터로 분류 모델을 만들어 중요한 서비스를 찾아보자.
 
 **데이터**: 캐글의 `airline_passenger_satisfaction.csv`. 와이파이, 온라인 예약, 좌석, 기내 엔터테인먼트, 청결 등 서비스 만족도(0~5점) 14개 항목과 최종 만족 여부(Satisfaction)가 들어 있다.
+
+<DataFiles files={['airline_passenger_satisfaction.csv']} />
 
 <Colab file="activity5_airline.ipynb" title="선택 활동 5 항공사 고객 만족도 분류하기" minutes="약 15분">
 

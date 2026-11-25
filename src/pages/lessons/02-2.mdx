@@ -8,6 +8,7 @@ import OverfitLab from '../../components/OverfitLab.astro';
 import FigMLSteps from '../../components/figs/FigMLSteps.astro';
 import FigSplit from '../../components/figs/FigSplit.astro';
 import FigKFold from '../../components/figs/FigKFold.astro';
+import DataFiles from '../../components/DataFiles.astro';
 
 <Lesson slug="02-2" ids={['s1', 'a4', 's2', 'more']}>
 
@@ -53,6 +54,10 @@ import FigKFold from '../../components/figs/FigKFold.astro';
 | 단계 2 데이터 수집 및 전처리하기 | 라벨 생수병과 무라벨 생수병 사진을 직접 모으거나 교과서 링크의 '라벨-무라벨 생수병 분류하기.zip'을 내려받는다. 사진을 훈련 데이터와 테스트 데이터로 나눈다. |
 | 단계 3 모델 생성하기 | [티처블 머신](https://teachablemachine.withgoogle.com/)에서 [이미지 프로젝트] → [표준 이미지 모델]을 고른다. 클래스 이름을 label, labeless로 정하고 훈련 데이터 사진을 올리거나 웹캠으로 찍는다. [모델 학습시키기]를 누른다. |
 | 단계 4 모델 평가하기 | 학습이 끝나면 웹캠이나 테스트 데이터 사진으로 예측해 본다. |
+
+<DataFiles files={['label_labeless.zip']} />
+
+압축을 풀면 train, test 폴더 안에 label, labeless 폴더가 있다.
 
 **클래스**(class)는 지도학습에서 예측하려는 값의 범주이다. 이 활동에서는 label과 labeless가 클래스이다. 학습한 모델은 [모델 내보내기] → [Tensorflow.js] → 업로드하면 생기는 공유 링크로 다른 사람과 나눌 수 있다.
 

@@ -1,0 +1,39 @@
+---
+// 교과서 활동에 필요한 자료 파일을 바로 내려받는 상자. 파일은 public/data에 있다.
+import { DATA } from '../data/datafiles';
+interface Props { files: string[]; title?: string; }
+const { files, title = '자료 내려받기' } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const items = files.map((f) => ({ name: f, ...DATA[f] }));
+const kb = (b: number) => (b >= 1048576 ? `${(b / 1048576).toFixed(1)}MB` : `${Math.max(1, Math.round(b / 1024))}KB`);
+---
+<div class="widget df">
+  <p class="widget-title">{title}</p>
+  <ul class="df-list">
+    {items.map((it) => (
+      <li>
+        <div class="df-info">
+          <span class="df-name">{it.name}</span>
+          <span class="df-size">{kb(it.bytes)}</span>
+          <span class="df-desc">{it.desc}</span>
+          <span class="df-src">출처: {it.srcUrl ? <a href={it.srcUrl} target="_blank" rel="noopener">{it.src}</a> : it.src}</span>
+        </div>
+        <a class="btn" href={`${base}/data/${it.name}`} download={it.name}>내려받기</a>
+      </li>
+    ))}
+  </ul>
+  <p class="df-note">코랩 노트북은 첫 칸에서 '사이트에서 바로 받기'를 고르면 이 파일을 자동으로 가져옵니다. 오렌지3에서는 내려받은 파일을 File 위젯으로 엽니다.</p>
+</div>
+
+<style>
+  .df { border-left: 4px solid var(--pos); }
+  .df-list { list-style: none; padding: 0; margin: 0.4rem 0 0; }
+  .df-list li { display: flex; gap: 1rem; align-items: center; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid var(--line); }
+  .df-info { display: flex; flex-wrap: wrap; gap: 0.15rem 0.6rem; align-items: baseline; min-width: 0; }
+  .df-name { font-weight: 700; font-family: var(--mono, ui-monospace, monospace); font-size: 0.92rem; overflow-wrap: anywhere; }
+  .df-size { color: var(--muted); font-size: 0.85rem; }
+  .df-desc { flex-basis: 100%; font-size: 0.9rem; color: var(--ink-2); }
+  .df-src { flex-basis: 100%; font-size: 0.82rem; color: var(--muted); }
+  .df-list .btn { flex: none; }
+  .df-note { font-size: 0.85rem; color: var(--muted); margin: 0.6rem 0 0; }
+</style>

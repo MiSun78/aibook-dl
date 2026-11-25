@@ -7,6 +7,7 @@ import Colab from '../../components/Colab.astro';
 import KMeansLab from '../../components/KMeansLab.astro';
 import FigKMeansSteps from '../../components/figs/FigKMeansSteps.astro';
 import FigSilhouette from '../../components/figs/FigSilhouette.astro';
+import DataFiles from '../../components/DataFiles.astro';
 
 <Lesson slug="02-5" ids={['s1', 'a6', 'p4', 'orange', 'more', 'opt6', 'dream']}>
 
@@ -59,9 +60,11 @@ k-평균 군집화 과정을 한 단계씩 따라가 보자. 교과서 링크(bi
 | 단계 3 모델 생성하기 | 레이블이 없으므로 비지도학습의 k-평균 군집화를 고른다. k=5로 학습하고 군집 결과와 중심점을 산점도로 그린다. |
 | 단계 4 모델 평가하기 | 실루엣 점수로 군집이 얼마나 잘 나뉘었는지 평가한다. |
 
+<DataFiles files={['Mall_Customers.csv']} />
+
 <Colab file="practice4_mall_student.ipynb" title="실습 4 쇼핑몰 고객 군집화하기" minutes="약 20분">
 
-1. 코랩에 `Mall_Customers.csv`를 올린다.
+1. 첫 칸에서 '사이트에서 바로 받기'로 `Mall_Customers.csv`를 가져온다.
 2. k 슬라이더를 5로 두고 실행해 군집 결과와 중심점(★)을 본다.
 3. 마지막 칸에서 k를 2~10으로 바꾼 엘보 그래프와 실루엣 점수를 비교한다.
 
@@ -126,6 +129,8 @@ print(silhouette_score(data, model.labels_))   # 실루엣 점수
 1. **데이터 준비**: `caffe_menu.csv`에서 설탕(sugars(g))과 카페인(caffeine(mg))을 특징으로 고른다.
 2. **정규화**: 설탕(g)과 카페인(mg)은 범위가 크게 다르므로 `MinMaxScaler`로 0~1 사이 값으로 정규화한다.
 3. **모델 생성**: k-평균 군집화로 음료를 군집으로 나누고, 군집마다 어떤 음료가 있는지 살펴본다.
+
+<DataFiles files={['caffe_menu.csv']} />
 
 <Colab file="activity6_cafe.ipynb" title="선택 활동 6 카페 음료 군집화하기" minutes="약 15분">
 

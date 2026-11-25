@@ -11,6 +11,7 @@ import FigEDA from '../../components/figs/FigEDA.astro';
 import FigPenguin from '../../components/figs/FigPenguin.astro';
 import FigBoxplot from '../../components/figs/FigBoxplot.astro';
 import FigMinMax from '../../components/figs/FigMinMax.astro';
+import DataFiles from '../../components/DataFiles.astro';
 
 <Lesson slug="01-3" ids={['s1', 's2', 'more', 's3', 'p1', 'orange', 'read', 'opt']}>
 
@@ -51,6 +52,8 @@ import FigMinMax from '../../components/figs/FigMinMax.astro';
 - **선그래프**: 시간에 따른 변화와 추세를 본다. 예) 연도별 물가 지수
 - **산점도**: 두 속성 사이의 관계와, 다른 값에서 크게 벗어난 이상치를 본다.
 - **막대그래프**: 범주형 데이터의 도수(빈도수)를 본다. 예) 펭귄 종별 데이터 수
+
+<DataFiles files={['chicken_cpi.xlsx']} />
 
 <PenguinPrep />
 
@@ -134,14 +137,16 @@ import FigMinMax from '../../components/figs/FigMinMax.astro';
 
 | 단계 | 하는 일 | 코드 |
 |---|---|---|
-| 1. 데이터 수집하기 | 캐글에서 penguins_size.csv 내려받기 (교과서 78쪽 링크) | |
+| 1. 데이터 수집하기 | 캐글에서 penguins_size.csv 내려받기 (교과서 78쪽 링크, 아래에서 바로 받을 수 있음) | |
 | 2. 데이터 살펴보기 | 불러오기, 속성과 유형, 통계 요약, 종별 데이터 수 | `read_csv()`, `info()`, `describe()`, `countplot()` |
 | 3. 데이터 전처리하기 | 결측치 행 삭제, 이상치 확인과 삭제, 최소-최대 정규화 | `dropna()`, `boxplot()`, `unique()`, `drop()`, `MinMaxScaler()` |
 | 4. 핵심 속성 추출하기 | 산점도와 상관계수 히트맵으로 핵심 속성 찾기 | `scatterplot()`, `heatmap()`, `regplot()` |
 
+<DataFiles files={['penguins_size.csv']} />
+
 <Colab file="practice1_penguin_student.ipynb" title="실습 1 남극 펭귄 데이터 탐색하기" minutes="약 25분">
 
-교과서 실습 1과 같은 순서의 코드가 들어 있다. 맨 위 칸에서 penguins_size.csv를 올린 뒤 위에서부터 차례로 실행한다. 상자그림과 산점도는 오른쪽 상자에서 속성을 바꿔 다시 실행할 수 있다.
+교과서 실습 1과 같은 순서의 코드가 들어 있다. 맨 위 칸에서 '사이트에서 바로 받기'로 penguins_size.csv를 가져온 뒤 위에서부터 차례로 실행한다. 상자그림과 산점도는 오른쪽 상자에서 속성을 바꿔 다시 실행할 수 있다.
 
 </Colab>
 
@@ -186,6 +191,8 @@ Distribution 위젯에서 변수를 flipper_length_mm, Split by를 species로 �
 1. 기상자료개방포털(data.kma.go.kr)의 [데이터]-[지진화산]-[지진화산 특·정보]-[지진정보]에서 최대 120개월의 지진 데이터를 조회해 csv로 저장한다. 엑셀에서 한글이 깨지면 구글 스프레드시트로 열어 csv로 다시 저장한다(파일명: earthquake). 직접 모으지 않았다면 교과서 86쪽 링크의 파일을 쓴다.
 2. 결측치를 확인하고 지운 뒤, 시간에서 연도를 뽑아 연도별 지진 규모를 산점도로 그린다.
 3. 위치에서 지역(앞 두 글자)을 뽑아 지역별 지진 발생 횟수를 원그래프로 그린다.
+
+<DataFiles files={['earthquake.csv']} />
 
 <Colab file="activity_earthquake.ipynb" title="선택 활동 우리나라 지진 발생 현황 분석" minutes="약 15분" />
 

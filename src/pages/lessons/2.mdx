@@ -9,6 +9,7 @@ import Split from '../../components/Split.astro';
 import FigSteps from '../../components/figs/FigSteps.astro';
 import FigTrain from '../../components/figs/FigTrain.astro';
 import FigFlatten from '../../components/figs/FigFlatten.astro';
+import DataFiles from '../../components/DataFiles.astro';
 
 <Lesson n={2} ids={['s1', 'ex', 's3', 'p5', 'more', 'orange']}>
 
@@ -40,6 +41,8 @@ import FigFlatten from '../../components/figs/FigFlatten.astro';
 - 특징(X): sweet, crunchy
 - 타깃(y): class (0 과일, 1 단백질, 2 채소)
 - 데이터: food_nn.csv (교과서 134쪽 안내 링크)
+
+<DataFiles files={['food_nn.csv']} />
 
 ### 1) 신경망 모델 설계하기
 
@@ -171,6 +174,10 @@ model.predict(X)       # 클래스마다의 확률을 출력
 
 <DrawPad variant="lab" />
 
+교과서와 같이 사진으로 해 보려면 아래 사진(종이에 쓴 1과 3)이나 직접 찍은 사진을 쓴다.
+
+<DataFiles files={['13.jpg']} />
+
 <Ask>
 
 - 신경망이 내가 쓴 숫자를 잘 맞히는가? 잘 맞히지 못하는 숫자가 있다면 그 이유는 무엇일까? (교과서 63쪽 참고)
@@ -182,7 +189,9 @@ model.predict(X)       # 클래스마다의 확률을 출력
 
 <Sec id="orange" title="손으로 쓴 숫자 분류 모델 구현하기" pages="142쪽" kind="오렌지로 해 볼까?">
 
-같은 실습을 오렌지3로 할 수 있다. 데이터는 교과서 142쪽 안내 링크에서 내려받는다.
+같은 실습을 오렌지3로 할 수 있다. 데이터는 교과서 142쪽 안내 링크의 파일이다. 아래에서 받아 압축을 푼다.
+
+<DataFiles files={['mnist_dataset.zip']} />
 
 1. **데이터 불러오기**: File 위젯 두 개로 mnist_train_small.csv(5,000개)와 mnist_test_small.csv(1,000개)를 불러온다. 이름을 File(train), File(test)로 바꾼다.
 2. **특징과 타깃 정하기**: label 속성을 범주형(categorical) 타깃(target)으로, 나머지 속성을 특징(feature)으로 정하고 [Apply]를 누른다.
