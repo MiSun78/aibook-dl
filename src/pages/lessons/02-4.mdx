@@ -12,6 +12,8 @@ import FigKNN from '../../components/figs/FigKNN.astro';
 import FigConfusion from '../../components/figs/FigConfusion.astro';
 import DataFiles from '../../components/DataFiles.astro';
 import OrangeFlow from '../../components/OrangeFlow.astro';
+import ThresholdSim from '../../components/ThresholdSim.astro';
+import DistanceSim from '../../components/DistanceSim.astro';
 
 <Lesson slug="02-4" ids={['s1', 'a5', 's2', 's3', 'food', 'p3', 'orange', 'opt4', 'opt5']}>
 
@@ -110,6 +112,8 @@ import OrangeFlow from '../../components/OrangeFlow.astro';
 <FigKNN />
 </Split>
 
+<DistanceSim />
+
 <ClassifyLab />
 
 <Ask label="해 보기">
@@ -147,6 +151,15 @@ import OrangeFlow from '../../components/OrangeFlow.astro';
 
 - **정밀도** = TP ÷ (TP + FP): 모델이 '예'라고 한 것 중 실제로 '예'인 비율. 스팸 필터처럼 정상 메일을 스팸으로 잘못 거르는(FP) 일이 큰 문제일 때 중요하다.
 - **재현율** = TP ÷ (TP + FN): 실제 '예'인 것 중 모델이 '예'라고 찾아낸 비율. 암 진단처럼 실제 환자를 놓치는(FN) 일이 큰 문제일 때 중요하다.
+
+<ThresholdSim />
+
+<Ask label="해 보기">
+
+- 스팸 메일 상황에서 기준값을 0.3에서 0.9까지 올려 보자. 정밀도와 재현율은 각각 어떻게 변하는가?
+- 암 진단 상황에서 재현율을 100%로 만드는 기준값을 찾아보자. 그때 정밀도는 얼마인가? 이 기준을 쓰는 것이 괜찮을까?
+
+</Ask>
 
 </Sec>
 

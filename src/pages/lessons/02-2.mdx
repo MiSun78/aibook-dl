@@ -9,6 +9,7 @@ import FigMLSteps from '../../components/figs/FigMLSteps.astro';
 import FigSplit from '../../components/figs/FigSplit.astro';
 import FigKFold from '../../components/figs/FigKFold.astro';
 import DataFiles from '../../components/DataFiles.astro';
+import KFoldSim from '../../components/KFoldSim.astro';
 
 <Lesson slug="02-2" ids={['s1', 'a4', 's2', 'more']}>
 
@@ -137,6 +138,16 @@ k=5이면 훈련 데이터를 5등분해 1개는 검증, 4개는 훈련에 쓴�
 </div>
 <FigKFold />
 </Split>
+
+<KFoldSim />
+
+<Ask label="해 보기">
+
+- [다음 폴드]를 눌러 가며 폴드마다 검증 정확도가 어떻게 다른지 보자. 가장 높은 폴드와 가장 낮은 폴드의 차이는 얼마인가?
+- [비교: 한 번만 나누기를 20번 해 보기]를 눌러 보자. 한 번만 나누어 평가하면 어떤 문제가 있을까?
+- 폴드 수를 3, 5, 10으로 바꿔 보자. 한 번에 학습에 쓰는 데이터 양과 반복 횟수는 어떻게 달라지는가?
+
+</Ask>
 
 </Sec>
 

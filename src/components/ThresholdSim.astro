@@ -1,0 +1,100 @@
+---
+// 분류 기준값(임곗값)을 바꾸며 혼동 행렬, 정확도, 정밀도, 재현율이 어떻게 변하는지 보기
+---
+<div class="widget th" data-threshold>
+  <p class="widget-title">정밀도와 재현율 시뮬레이션</p>
+  <p class="widget-help">모델은 데이터마다 '예(Positive)일 확률'을 계산하고, 기준값보다 크면 '예'로 분류합니다. 기준값을 움직이면 혼동 행렬의 네 칸과 정확도, 정밀도, 재현율이 함께 바뀝니다.</p>
+  <div class="th-ctl">
+    <span role="group" aria-label="상황 고르기">
+      <button type="button" class="ghost" data-sc="spam">스팸 메일 거르기</button>
+      <button type="button" class="ghost" data-sc="cancer">암 진단</button>
+    </span>
+    <label>기준값 <input type="range" min="0.05" max="0.95" step="0.05" value="0.5" data-t /> <b data-tv></b></label>
+  </div>
+  <svg data-line viewBox="0 0 900 172" role="img" aria-label="데이터를 모델이 계산한 확률 순서로 놓은 모습과 기준값"></svg>
+  <div class="th-grid">
+    <table class="th-cm" data-cm></table>
+    <div data-metrics></div>
+  </div>
+  <p class="th-msg" data-msg aria-live="polite"></p>
+</div>
+
+<style>
+  .th-ctl { display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem; align-items: center; margin-bottom: 0.6rem; font-size: 0.92rem; }
+  .th-ctl span { display: flex; gap: 0.3rem; }
+  .th-ctl button { padding: 0.3em 0.8em; font-size: 0.9rem; }
+  .th-ctl label { display: inline-flex; gap: 0.4rem; align-items: center; }
+  .th-ctl input[type='range'] { width: 11rem; }
+  [data-line] { width: 100%; height: auto; display: block; background: #fff; border: 1px solid var(--line); border-radius: var(--radius-s); }
+  .th-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 1.2rem; margin-top: 0.8rem; align-items: start; }
+  .th-cm { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+  .th-cm :global(td), .th-cm :global(th) { border: 1px solid var(--line); padding: 0.45em; text-align: center; }
+  .th-cm :global(td.ok) { background: var(--pos-soft); }
+  .th-cm :global(td.bad) { background: var(--neg-soft); }
+  .th-cm :global(td b) { font-size: 1.15rem; }
+  .th-cm :global(small) { color: var(--muted); }
+  [data-metrics] :global(.m) { display: grid; grid-template-columns: 4.5rem 1fr 3.2rem; gap: 0.5rem; align-items: center; margin-bottom: 0.45rem; font-size: 0.9rem; }
+  [data-metrics] :global(.bar) { height: 0.9rem; background: #eef0f4; border-radius: 4px; overflow: hidden; }
+  [data-metrics] :global(.bar i) { display: block; height: 100%; }
+  [data-metrics] :global(.f) { font-size: 0.8rem; color: var(--muted); grid-column: 2 / 4; margin-top: -0.35rem; }
+  .th-msg { font-size: 0.92rem; margin: 0.8rem 0 0; padding: 0.6rem 0.8rem; background: var(--fire-soft); border-radius: var(--radius-s); line-height: 1.6; }
+  @media (max-width: 700px) { .th-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  import { rng, gauss } from '../scripts/ml';
+  const SC = {
+    spam: { pos: '스팸', neg: '정상 메일', key: 'precision',
+      fp: '정상 메일을 스팸으로 잘못 거름(FP): 중요한 메일을 놓칠 수 있음', fn: '스팸을 정상으로 통과시킴(FN): 조금 귀찮음' },
+    cancer: { pos: '암', neg: '정상', key: 'recall',
+      fp: '정상인데 암으로 판정(FP): 추가 검사로 확인 가능', fn: '암인데 정상으로 판정(FN): 치료 시기를 놓침' },
+  } as const;
+  document.querySelectorAll<HTMLElement>('[data-threshold]').forEach((root) => {
+    const $ = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const it = $<HTMLInputElement>('[data-t]');
+    const r = rng(21);
+    const clamp = (v: number) => Math.min(0.98, Math.max(0.02, v));
+    const data = [
+      ...Array.from({ length: 22 }, () => ({ p: clamp(0.68 + gauss(r) * 0.16), y: 1 })),
+      ...Array.from({ length: 38 }, () => ({ p: clamp(0.33 + gauss(r) * 0.16), y: 0 })),
+    ].sort((a, b) => a.p - b.p);
+    let sc: keyof typeof SC = 'spam';
+    function draw() {
+      const t = +it.value, S = SC[sc];
+      $('[data-tv]').textContent = t.toFixed(2);
+      root.querySelectorAll<HTMLButtonElement>('[data-sc]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.sc === sc)));
+      const X = (p: number) => 30 + p * 840;
+      let s = `<rect x="${X(t)}" y="22" width="${X(1) - X(t)}" height="120" fill="#fde8e9" fill-opacity=".6"/>`;
+      s += `<text x="${X(t) + 8}" y="16" font-size="12" font-weight="700" fill="#b4232b">'${S.pos}'로 분류 →</text><text x="${X(t) - 8}" y="16" font-size="12" font-weight="700" text-anchor="end" fill="#1d4ed8">← '${S.neg}'로 분류</text>`;
+      const lanes: number[] = [];
+      data.forEach((d) => {
+        const x = X(d.p);
+        let lane = 0; while (lanes[lane] !== undefined && x - lanes[lane] < 15) lane++;
+        lanes[lane] = x;
+        const yy = 128 - lane * 14;
+        const predPos = d.p >= t, ok = predPos === (d.y === 1);
+        s += d.y === 1
+          ? `<circle cx="${x}" cy="${yy}" r="6.5" fill="#e0464e" stroke="${ok ? '#fff' : '#172038'}" stroke-width="${ok ? 1 : 2.5}"/>`
+          : `<rect x="${x - 6}" y="${yy - 6}" width="12" height="12" fill="#2563eb" stroke="${ok ? '#fff' : '#172038'}" stroke-width="${ok ? 1 : 2.5}"/>`;
+      });
+      s += `<line x1="${X(t)}" y1="22" x2="${X(t)}" y2="140" stroke="#172038" stroke-width="2.5"/>`;
+      s += `<line x1="30" y1="140" x2="870" y2="140" stroke="#b9c0cc"/>`;
+      [0, 0.25, 0.5, 0.75, 1].forEach((v) => (s += `<text x="${X(v)}" y="155" font-size="11" text-anchor="middle" fill="#5b6478">${v}</text>`));
+      s += `<text x="450" y="169" font-size="10.5" text-anchor="middle" fill="#5b6478">모델이 계산한 '${S.pos}'일 확률 · ● 실제 ${S.pos}  ■ 실제 ${S.neg} · 굵은 테두리 = 잘못 분류</text>`;
+      $<SVGSVGElement>('[data-line]').innerHTML = s;
+      let TP = 0, FP = 0, FN = 0, TN = 0;
+      data.forEach((d) => { const pp = d.p >= t; if (pp && d.y) TP++; else if (pp) FP++; else if (d.y) FN++; else TN++; });
+      $('[data-cm]').innerHTML = `<tr><th>실제 \\ 예측</th><th>${S.neg}</th><th>${S.pos}</th></tr>
+        <tr><th>${S.neg}</th><td class="ok"><b>${TN}</b><br><small>TN</small></td><td class="bad"><b>${FP}</b><br><small>FP</small></td></tr>
+        <tr><th>${S.pos}</th><td class="bad"><b>${FN}</b><br><small>FN</small></td><td class="ok"><b>${TP}</b><br><small>TP</small></td></tr>`;
+      const acc = (TP + TN) / data.length, pre = TP + FP ? TP / (TP + FP) : 0, rec = TP / (TP + FN);
+      const m = (name: string, v: number, f: string, hi: boolean) => `<div class="m"><b style="${hi ? 'color:#b4232b' : ''}">${name}</b><span class="bar"><i style="width:${v * 100}%;background:${hi ? '#e0464e' : '#2563eb'}"></i></span><span>${(v * 100).toFixed(0)}%</span><span class="f">${f}</span></div>`;
+      $('[data-metrics]').innerHTML = m('정확도', acc, `(TP+TN) ÷ 전체 = (${TP}+${TN}) ÷ ${data.length}`, false) +
+        m('정밀도', pre, `TP ÷ (TP+FP) = ${TP} ÷ ${TP + FP}`, S.key === 'precision') + m('재현율', rec, `TP ÷ (TP+FN) = ${TP} ÷ ${TP + FN}`, S.key === 'recall');
+      $('[data-msg]').innerHTML = `${S.fp}<br>${S.fn}<br><b>${sc === 'spam' ? '스팸 필터는 정밀도가 중요해요. 기준값을 올리면 정밀도는 올라가지만 재현율은 내려가요.' : '암 진단은 재현율이 중요해요. 기준값을 내리면 재현율은 올라가지만 정밀도는 내려가요.'}</b>`;
+    }
+    root.querySelectorAll<HTMLButtonElement>('[data-sc]').forEach((b) => b.addEventListener('click', () => { sc = b.dataset.sc as any; it.value = sc === 'spam' ? '0.7' : '0.35'; draw(); }));
+    it.addEventListener('input', draw);
+    draw();
+  });
+</script>

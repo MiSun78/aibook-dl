@@ -1,0 +1,54 @@
+---
+// 유클리디언 거리와 맨해튼 거리 비교: 격자를 눌러 점을 옮긴다
+---
+<div class="widget ds" data-dist>
+  <p class="widget-title">유클리디언 거리와 맨해튼 거리 재 보기</p>
+  <p class="widget-help">격자의 교차점을 누르면 가까운 점(P1 또는 P2)이 그 자리로 옮겨 갑니다. 빨간 직선이 유클리디언 거리, 파란 계단 길이 맨해튼 거리입니다.</p>
+  <div class="ds-grid">
+    <svg data-svg viewBox="0 0 320 320" role="img" aria-label="두 점 사이의 유클리디언 거리와 맨해튼 거리"></svg>
+    <div class="ds-out" data-out aria-live="polite"></div>
+  </div>
+</div>
+
+<style>
+  .ds-grid { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: 1.2rem; align-items: center; }
+  .ds-grid svg { width: 100%; height: auto; display: block; background: #fff; border: 1px solid var(--line); border-radius: var(--radius-s); cursor: pointer; }
+  .ds-out { font-size: 0.98rem; line-height: 1.9; }
+  .ds-out :global(.e) { color: #e0464e; font-weight: 700; }
+  .ds-out :global(.m) { color: #2563eb; font-weight: 700; }
+  @media (max-width: 640px) { .ds-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-dist]').forEach((root) => {
+    const svg = root.querySelector<SVGSVGElement>('[data-svg]')!, out = root.querySelector<HTMLElement>('[data-out]')!;
+    let P1 = [1, 1], P2 = [5, 4];
+    const N = 6, g = (v: number) => 30 + v * 45, gy = (v: number) => 290 - v * 45;
+    function draw() {
+      let s = '';
+      for (let i = 0; i <= N; i++) {
+        s += `<line x1="${g(i)}" y1="${gy(0)}" x2="${g(i)}" y2="${gy(N)}" stroke="#e5e8ee"/><line x1="${g(0)}" y1="${gy(i)}" x2="${g(N)}" y2="${gy(i)}" stroke="#e5e8ee"/>`;
+        s += `<text x="${g(i)}" y="${gy(0) + 16}" font-size="11" text-anchor="middle" fill="#5b6478">${i}</text><text x="${g(0) - 10}" y="${gy(i) + 4}" font-size="11" text-anchor="end" fill="#5b6478">${i}</text>`;
+      }
+      s += `<path d="M${g(P1[0])} ${gy(P1[1])} H${g(P2[0])} V${gy(P2[1])}" fill="none" stroke="#2563eb" stroke-width="4" stroke-opacity=".75"/>`;
+      s += `<line x1="${g(P1[0])}" y1="${gy(P1[1])}" x2="${g(P2[0])}" y2="${gy(P2[1])}" stroke="#e0464e" stroke-width="3"/>`;
+      [[P1, 'P1'], [P2, 'P2']].forEach(([p, n]: any) => (s += `<circle cx="${g(p[0])}" cy="${gy(p[1])}" r="8" fill="#172038"/><text x="${g(p[0]) + 11}" y="${gy(p[1]) - 9}" font-size="12" font-weight="800" fill="#172038">${n}(${p[0]}, ${p[1]})</text>`));
+      svg.innerHTML = s;
+      const dx = Math.abs(P2[0] - P1[0]), dy = Math.abs(P2[1] - P1[1]);
+      const e = Math.sqrt(dx * dx + dy * dy);
+      out.innerHTML = `가로 차이 |${P2[0]} − ${P1[0]}| = ${dx}, 세로 차이 |${P2[1]} − ${P1[1]}| = ${dy}<br>
+        <span class="e">유클리디언 거리</span> = √(${dx}² + ${dy}²) = √${dx * dx + dy * dy} ${Number.isInteger(e) ? '=' : '≈'} <b>${Number.isInteger(e) ? e : e.toFixed(2)}</b><br>
+        <span class="m">맨해튼 거리</span> = ${dx} + ${dy} = <b>${dx + dy}</b><br>
+        <small>맨해튼 거리는 바둑판 모양 길을 따라 걷는 거리라 직선거리(유클리디언)보다 항상 같거나 깁니다.</small>`;
+    }
+    svg.addEventListener('click', (ev) => {
+      const r = svg.getBoundingClientRect();
+      const x = Math.round((((ev.clientX - r.left) / r.width) * 320 - 30) / 45), y = Math.round((290 - ((ev.clientY - r.top) / r.height) * 320) / 45);
+      if (x < 0 || x > N || y < 0 || y > N) return;
+      const d1 = Math.hypot(x - P1[0], y - P1[1]), d2 = Math.hypot(x - P2[0], y - P2[1]);
+      if (d1 <= d2) P1 = [x, y]; else P2 = [x, y];
+      draw();
+    });
+    draw();
+  });
+</script>

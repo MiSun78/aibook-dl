@@ -1,0 +1,203 @@
+---
+// k-폴드 교차 검증이 실제로 어떻게 진행되는지 한 폴드씩 따라가는 시뮬레이션 (펭귄 데이터, k-최근접 이웃)
+---
+<div class="widget kf" data-kfold>
+  <p class="widget-title">k-폴드 교차 검증 시뮬레이션</p>
+  <p class="widget-help">펭귄 데이터(결측치 제거 334마리)의 70%를 훈련 데이터로, 30%를 테스트 데이터로 떼어 둡니다. 훈련 데이터를 k조각으로 나눈 뒤 [다음 폴드]를 누를 때마다 한 조각을 검증 데이터로 바꿔 가며 k-최근접 이웃 모델을 학습하고 평가합니다. 일부러 구분이 어려운 두 속성(부리 깊이, 체질량)을 써서 폴드마다 결과가 달라지게 했습니다.</p>
+  <div class="kf-ctl">
+    <label>폴드 수 k <select data-k><option>3</option><option selected>5</option><option>10</option></select></label>
+    <label>이웃 수(kNN) <input type="range" min="1" max="25" value="5" data-nn /> <b data-nnv></b></label>
+    <button type="button" data-step>다음 폴드</button>
+    <button type="button" class="ghost" data-all>끝까지</button>
+    <button type="button" class="ghost" data-reset>처음부터</button>
+  </div>
+  <svg class="kf-strip" data-strip viewBox="0 0 900 74" role="img" aria-label="데이터를 폴드로 나눈 모습"></svg>
+  <div class="kf-grid">
+    <div>
+      <svg data-plot viewBox="0 0 400 300" role="img" aria-label="훈련 데이터와 검증 데이터 산점도, 검증 데이터의 정답 여부"></svg>
+      <p class="kf-legend"><span><i class="tr"></i>이번 폴드의 훈련 데이터</span><span><i class="ok"></i>검증: 맞힘</span><span><i class="ng"></i>검증: 틀림</span></p>
+    </div>
+    <div>
+      <p class="kf-stage" data-stage aria-live="polite"></p>
+      <svg data-bars viewBox="0 0 320 190" role="img" aria-label="폴드별 검증 정확도"></svg>
+      <p class="kf-result" data-result></p>
+    </div>
+  </div>
+  <div class="kf-cmp">
+    <button type="button" class="ghost" data-holdout>비교: 한 번만 나누기를 20번 해 보기</button>
+    <svg data-hold viewBox="0 0 640 96" role="img" aria-label="한 번만 나누었을 때의 정확도 20개와 교차 검증 평균"></svg>
+    <p class="kf-cmp-txt" data-holdtxt></p>
+  </div>
+</div>
+
+<style>
+  .kf-ctl { display: flex; flex-wrap: wrap; gap: 0.5rem 1.1rem; align-items: center; margin-bottom: 0.6rem; font-size: 0.92rem; }
+  .kf-ctl label { display: inline-flex; gap: 0.4rem; align-items: center; }
+  .kf-ctl select { font: inherit; padding: 0.2rem 0.4rem; border-radius: 6px; border: 1.5px solid var(--line-strong); }
+  .kf-ctl input[type='range'] { width: 7rem; }
+  .kf-ctl button, .kf-cmp button { padding: 0.3em 0.8em; font-size: 0.9rem; }
+  .kf-strip { width: 100%; height: auto; display: block; margin-bottom: 0.6rem; }
+  .kf-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+  .kf-grid svg { width: 100%; height: auto; display: block; background: #fff; border: 1px solid var(--line); border-radius: var(--radius-s); }
+  .kf-legend { font-size: 0.82rem; display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; margin: 0.35rem 0 0; color: var(--ink-2); }
+  .kf-legend i { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 50%; margin-right: 0.3rem; vertical-align: -1px; }
+  .kf-legend i.tr { background: #b9c7e6; } .kf-legend i.ok { background: #fff; border: 2.5px solid #138a52; } .kf-legend i.ng { background: #e0464e; }
+  .kf-stage { font-weight: 700; margin: 0 0 0.5rem; line-height: 1.6; min-height: 3.2em; }
+  .kf-result { font-size: 0.95rem; margin: 0.5rem 0 0; line-height: 1.7; }
+  .kf-cmp { margin-top: 1rem; padding-top: 0.8rem; border-top: 1px dashed var(--line-strong); }
+  .kf-cmp svg { width: 100%; height: auto; display: block; margin-top: 0.5rem; }
+  .kf-cmp-txt { font-size: 0.9rem; margin: 0.3rem 0 0; color: var(--ink-2); line-height: 1.6; }
+  @media (max-width: 760px) { .kf-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  import { loadPenguins, SPECIES, SP_KO, SP_COLOR, col } from '../scripts/penguins';
+  import { stratifiedSplit, minmax, knn, shuffle, rng, accuracy, type Pt } from '../scripts/ml';
+  const FOLD = ['#2563eb', '#f2a516', '#138a52', '#8b5cf6', '#e0464e', '#0ea5b7', '#a16207', '#db2777', '#4b5563', '#65a30d'];
+  document.querySelectorAll<HTMLElement>('[data-kfold]').forEach(async (root) => {
+    const rows = (await loadPenguins()).filter((r) => r.slice(0, 6).every((v) => v !== null));
+    const X: Pt[] = rows.map((r) => [r[col('culmen_depth_mm')] as number, r[col('body_mass_g')] as number]);
+    const y = rows.map((r) => r[0] as string);
+    const { train, test } = stratifiedSplit(y, 0.3, 42);
+    const $ = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const selK = $<HTMLSelectElement>('[data-k]'), nn = $<HTMLInputElement>('[data-nn]');
+    let order: number[] = [], fold: number[] = [], cur = -1, accs: number[] = [], lastPred: Map<number, boolean> = new Map();
+    const K = () => +selK.value;
+    function setup() {
+      order = shuffle(train, rng(7));
+      fold = new Array(rows.length).fill(-1);
+      order.forEach((idx, i) => (fold[idx] = i % K()));
+      cur = -1; accs = []; lastPred = new Map();
+      $('[data-holdtxt]').textContent = ''; $<SVGSVGElement>('[data-hold]').innerHTML = '';
+      draw();
+    }
+    function fit(trIdx: number[]) {
+      const Xt = trIdx.map((i) => X[i]);
+      return knn(Xt, trIdx.map((i) => y[i]), Math.min(+nn.value, Xt.length), minmax(Xt));
+    }
+    function step() {
+      if (cur >= K() - 1) return;
+      cur++;
+      const va = order.filter((i) => fold[i] === cur), tr = order.filter((i) => fold[i] !== cur);
+      const m = fit(tr);
+      lastPred = new Map(va.map((i) => [i, m.predict(X[i]) === y[i]]));
+      accs.push([...lastPred.values()].filter(Boolean).length / va.length);
+      draw();
+    }
+    function draw() {
+      $('[data-nnv]').textContent = nn.value;
+      const k = K();
+      // 데이터 줄: 훈련 데이터를 폴드 순서로, 테스트 데이터는 따로
+      const strip = $<SVGSVGElement>('[data-strip]');
+      const n = order.length, x0 = 10, wTr = 640, cw = wTr / n;
+      let s = '';
+      const sorted = [...order].sort((a, b) => fold[a] - fold[b]);
+      sorted.forEach((idx, i) => {
+        const f = fold[idx];
+        const isVal = f === cur;
+        const fill = cur < 0 ? FOLD[f % FOLD.length] : isVal ? '#f2a516' : '#2563eb';
+        const op = cur < 0 ? 0.75 : isVal ? 1 : 0.45;
+        s += `<rect x="${(x0 + i * cw).toFixed(2)}" y="22" width="${(cw + 0.3).toFixed(2)}" height="26" fill="${fill}" fill-opacity="${op}"/>`;
+      });
+      for (let f = 0; f < k; f++) {
+        const cnt = order.filter((i) => fold[i] === f).length, start = sorted.findIndex((i) => fold[i] === f);
+        const cx = x0 + (start + cnt / 2) * cw;
+        s += `<line x1="${x0 + start * cw}" y1="18" x2="${x0 + start * cw}" y2="52" stroke="#fff" stroke-width="2"/>`;
+        s += `<text x="${cx}" y="14" font-size="12" text-anchor="middle" font-weight="${f === cur ? 800 : 600}" fill="${f === cur ? '#b26b00' : '#3a4560'}">${f === cur ? '검증' : '폴드 ' + (f + 1)}</text>`;
+        if (f < accs.length) s += `<text x="${cx}" y="66" font-size="11" text-anchor="middle" fill="#3a4560">${(accs[f] * 100).toFixed(0)}%</text>`;
+      }
+      s += `<text x="${x0}" y="66" font-size="11" fill="#5b6478">${cur < 0 ? '' : ''}</text>`;
+      const tx = x0 + wTr + 16;
+      s += `<rect x="${tx}" y="22" width="${900 - tx - 10}" height="26" fill="#9aa3b2" fill-opacity=".35" stroke="#9aa3b2" stroke-dasharray="4 3"/>`;
+      s += `<text x="${(tx + 890) / 2}" y="14" font-size="12" text-anchor="middle" font-weight="600" fill="#3a4560">테스트 데이터 30%</text>`;
+      s += `<text x="${(tx + 890) / 2}" y="40" font-size="11" text-anchor="middle" fill="#3a4560">마지막에 한 번만</text>`;
+      s += `<text x="${x0 + wTr / 2}" y="66" font-size="11" text-anchor="middle" fill="#5b6478">${cur < 0 ? `훈련 데이터 ${n}마리를 무작위로 섞어 ${k}조각으로 나눔` : ''}</text>`;
+      strip.innerHTML = s;
+
+      // 산점도
+      const plot = $<SVGSVGElement>('[data-plot]');
+      const xs = X.map((p) => p[0]), ys = X.map((p) => p[1]);
+      const [a0, a1] = [Math.min(...xs) - 0.5, Math.max(...xs) + 0.5], [b0, b1] = [Math.min(...ys) - 150, Math.max(...ys) + 150];
+      const px = (v: number) => 44 + ((v - a0) / (a1 - a0)) * 346, py = (v: number) => 262 - ((v - b0) / (b1 - b0)) * 250;
+      let p = '';
+      [14, 16, 18, 20].forEach((v) => (p += `<text x="${px(v)}" y="278" font-size="10.5" text-anchor="middle" fill="#5b6478">${v}</text>`));
+      [3000, 4000, 5000, 6000].forEach((v) => (p += `<text x="40" y="${py(v) + 4}" font-size="10.5" text-anchor="end" fill="#5b6478">${v}</text>`));
+      p += `<text x="217" y="296" font-size="11.5" font-weight="700" text-anchor="middle" fill="#172038">부리 깊이 (mm)</text>`;
+      p += `<text x="11" y="137" font-size="11.5" font-weight="700" text-anchor="middle" fill="#172038" transform="rotate(-90 11 137)">체질량 (g)</text>`;
+      order.forEach((i) => {
+        const isVal = fold[i] === cur;
+        if (cur >= 0 && isVal) return;
+        p += `<circle cx="${px(X[i][0])}" cy="${py(X[i][1])}" r="3.6" fill="${SP_COLOR[y[i]]}" fill-opacity="${cur < 0 ? 0.8 : 0.3}"/>`;
+      });
+      lastPred.forEach((ok, i) => {
+        p += ok
+          ? `<circle cx="${px(X[i][0])}" cy="${py(X[i][1])}" r="5" fill="${SP_COLOR[y[i]]}" stroke="#138a52" stroke-width="2.5"/>`
+          : `<g><circle cx="${px(X[i][0])}" cy="${py(X[i][1])}" r="6" fill="#e0464e" stroke="#fff" stroke-width="1.5"/><path d="M${px(X[i][0]) - 3} ${py(X[i][1]) - 3} l6 6 m0 -6 l-6 6" stroke="#fff" stroke-width="1.8"/></g>`;
+      });
+      p += SPECIES.map((sp, j) => `<circle cx="${300}" cy="${16 + j * 15}" r="4" fill="${SP_COLOR[sp]}"/><text x="308" y="${20 + j * 15}" font-size="10.5" fill="#3a4560">${SP_KO[sp]}</text>`).join('');
+      plot.innerHTML = p;
+
+      // 막대
+      const bars = $<SVGSVGElement>('[data-bars]');
+      const bw = Math.min(40, 260 / k - 6);
+      const by = (v: number) => 160 - ((v - 0.5) / 0.5) * 140;
+      let b = `<line x1="34" y1="${by(0.5)}" x2="314" y2="${by(0.5)}" stroke="#b9c0cc"/>`;
+      [0.5, 0.75, 1].forEach((v) => (b += `<text x="30" y="${by(v) + 4}" font-size="10" text-anchor="end" fill="#5b6478">${v * 100}%</text><line x1="34" y1="${by(v)}" x2="314" y2="${by(v)}" stroke="#eef0f4"/>`));
+      for (let f = 0; f < k; f++) {
+        const x = 40 + f * (270 / k) + (270 / k - bw) / 2;
+        if (f < accs.length) b += `<rect x="${x}" y="${by(accs[f])}" width="${bw}" height="${by(0.5) - by(accs[f])}" fill="${f === cur ? '#f2a516' : '#2563eb'}" fill-opacity="${f === cur ? 1 : 0.7}"/><text x="${x + bw / 2}" y="${by(accs[f]) - 4}" font-size="10" text-anchor="middle" fill="#172038">${(accs[f] * 100).toFixed(0)}</text>`;
+        else b += `<rect x="${x}" y="${by(0.5) - 2}" width="${bw}" height="2" fill="#dde1e8"/>`;
+        b += `<text x="${x + bw / 2}" y="176" font-size="10" text-anchor="middle" fill="#5b6478">${f + 1}</text>`;
+      }
+      if (accs.length) {
+        const m = accs.reduce((a, c) => a + c, 0) / accs.length;
+        b += `<line x1="34" y1="${by(m)}" x2="314" y2="${by(m)}" stroke="#e0464e" stroke-width="2" stroke-dasharray="6 4"/><rect x="36" y="${by(m) - 17}" width="72" height="14" rx="3" fill="#fff" fill-opacity=".9"/><text x="38" y="${by(m) - 6}" font-size="10.5" font-weight="700" fill="#e0464e">평균 ${(m * 100).toFixed(1)}%</text>`;
+      }
+      b += `<text x="174" y="188" font-size="10" text-anchor="middle" fill="#5b6478">폴드 번호 (검증에 쓴 조각)</text>`;
+      bars.innerHTML = b;
+
+      const stage = $('[data-stage]'), res = $('[data-result]');
+      if (cur < 0) { stage.textContent = `훈련 데이터를 ${k}개의 폴드로 나눴습니다. [다음 폴드]를 눌러 1번 폴드를 검증 데이터로 써 보세요.`; res.textContent = ''; }
+      else {
+        const va = lastPred.size, ok = [...lastPred.values()].filter(Boolean).length;
+        stage.textContent = `${cur + 1}번째 반복: 폴드 ${cur + 1}(${va}마리)로 검증하고, 나머지 ${k - 1}개 폴드(${order.length - va}마리)로 학습 → 검증 정확도 ${(accs[cur] * 100).toFixed(1)}% (${ok}/${va})`;
+        if (accs.length === k) {
+          const m = accs.reduce((a, c) => a + c, 0) / k, sd = Math.sqrt(accs.reduce((a, c) => a + (c - m) ** 2, 0) / k);
+          const full = fit(order);
+          const te = accuracy(test.map((i) => y[i]), test.map((i) => full.predict(X[i])));
+          res.innerHTML = `<b>교차 검증 결과</b>: ${k}개 정확도의 평균 <b>${(m * 100).toFixed(1)}%</b> (폴드마다 ±${(sd * 100).toFixed(1)}%p 정도 흔들림)<br>최종 확인: 훈련 데이터 전체로 다시 학습한 뒤, 남겨 둔 테스트 데이터로 한 번 평가 → <b>${(te * 100).toFixed(1)}%</b>`;
+        } else res.textContent = `${k - accs.length}번 더 반복하면 모든 폴드가 한 번씩 검증 데이터가 됩니다.`;
+      }
+    }
+    function holdout() {
+      // 훈련 데이터를 8:2로 한 번만 나누는 것을 20번 (나누는 방법만 바뀜)
+      const res: number[] = [];
+      for (let t = 0; t < 20; t++) {
+        const o = shuffle(train, rng(100 + t)), cut = Math.round(o.length * 0.8);
+        const tr = o.slice(0, cut), va = o.slice(cut), m = fit(tr);
+        res.push(accuracy(va.map((i) => y[i]), va.map((i) => m.predict(X[i]))));
+      }
+      // 같은 설정의 5-폴드 평균도 계산
+      const o = shuffle(train, rng(7)), f5 = o.map((_, i) => i % 5);
+      const cv = [0, 1, 2, 3, 4].map((f) => { const va = o.filter((_, i) => f5[i] === f), tr = o.filter((_, i) => f5[i] !== f), m = fit(tr); return accuracy(va.map((i) => y[i]), va.map((i) => m.predict(X[i]))); });
+      const cvm = cv.reduce((a, c) => a + c, 0) / 5;
+      const lo = Math.min(...res), hi = Math.max(...res);
+      const sx = (v: number) => 30 + ((v - 0.5) / 0.5) * 580;
+      let s = `<line x1="30" y1="60" x2="610" y2="60" stroke="#b9c0cc"/>`;
+      [0.5, 0.6, 0.7, 0.8, 0.9, 1].forEach((v) => (s += `<line x1="${sx(v)}" y1="56" x2="${sx(v)}" y2="64" stroke="#b9c0cc"/><text x="${sx(v)}" y="80" font-size="10.5" text-anchor="middle" fill="#5b6478">${(v * 100).toFixed(0)}%</text>`));
+      const stack: Record<string, number> = {};
+      res.forEach((v) => { const key = v.toFixed(3); stack[key] = (stack[key] || 0) + 1; s += `<circle cx="${sx(v)}" cy="${50 - (stack[key] - 1) * 9}" r="4.5" fill="#2563eb" fill-opacity=".75"/>`; });
+      s += `<line x1="${sx(cvm)}" y1="8" x2="${sx(cvm)}" y2="64" stroke="#e0464e" stroke-width="2.5"/><text x="${sx(cvm) + 5}" y="16" font-size="11" font-weight="700" fill="#e0464e">5-폴드 평균 ${(cvm * 100).toFixed(1)}%</text>`;
+      s += `<text x="30" y="94" font-size="10.5" fill="#5b6478"><tspan fill="#2563eb">●</tspan> 한 번만 나눴을 때의 검증 정확도 (20번)</text>`;
+      $<SVGSVGElement>('[data-hold]').innerHTML = s;
+      $('[data-holdtxt]').textContent = `한 번만 나누면 어떤 데이터가 검증에 뽑히느냐에 따라 정확도가 ${(lo * 100).toFixed(1)}%에서 ${(hi * 100).toFixed(1)}%까지 달라집니다. 교차 검증은 모든 데이터를 한 번씩 검증에 쓰고 평균을 내므로, 운에 덜 흔들리는 성능 추정값을 줍니다.`;
+    }
+    $('[data-step]').addEventListener('click', step);
+    $('[data-all]').addEventListener('click', () => { while (cur < K() - 1) step(); });
+    $('[data-reset]').addEventListener('click', setup);
+    $('[data-holdout]').addEventListener('click', holdout);
+    selK.addEventListener('change', setup);
+    nn.addEventListener('input', () => { setup(); });
+    setup();
+  });
+</script>
