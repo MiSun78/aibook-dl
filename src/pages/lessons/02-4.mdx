@@ -151,7 +151,7 @@ import DataFiles from '../../components/DataFiles.astro';
 
 <Sec id="food" title="당도와 아삭함으로 과일인지 채소인지 분류하기" pages="109쪽" kind="간단 실습">
 
-k-최근접 이웃으로 당도(sweet)와 아삭함(crunchy)을 보고 과일(fruit)인지 채소(vegetable)인지 분류해 보자. 데이터는 교과서 링크(bit.ly/food_data)의 `food.csv`이다.
+k-최근접 이웃으로 당도(sweet)와 아삭함(crunchy)을 보고 과일(fruit)인지 채소(vegetable)인지 분류해 보자. 데이터는 [교과서 링크](https://bit.ly/food_data)의 `food.csv`이다.
 
 ```python
 X = df[['sweet', 'crunchy']].values   # 특징: 열 여러 개는 대괄호를 두 번 쓴다
@@ -261,7 +261,7 @@ knn = KNeighborsClassifier(n_neighbors=5).fit(X_train_s, y_train)
 
 **문제 상황**: 고객의 만족도를 높이려면 항공사는 어떤 서비스에 먼저 힘써야 할까? 항공사 고객 만족도 조사 데이터로 분류 모델을 만들어 중요한 서비스를 찾아보자.
 
-**데이터**: 캐글의 `airline_passenger_satisfaction.csv`. 와이파이, 온라인 예약, 좌석, 기내 엔터테인먼트, 청결 등 서비스 만족도(0~5점) 14개 항목과 최종 만족 여부(Satisfaction)가 들어 있다.
+**데이터**: [캐글](https://www.kaggle.com/datasets/mysarahmadbhat/airline-passenger-satisfaction)의 `airline_passenger_satisfaction.csv`. 와이파이, 온라인 예약, 좌석, 기내 엔터테인먼트, 청결 등 서비스 만족도(0~5점) 14개 항목과 최종 만족 여부(Satisfaction)가 들어 있다.
 
 <DataFiles files={['airline_passenger_satisfaction.csv']} />
 

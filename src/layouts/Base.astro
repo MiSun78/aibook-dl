@@ -73,6 +73,12 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       </main>
     </div>
 
+    <script>
+      // 바깥 사이트 링크는 새 탭으로 연다 (수업 중 교과서 화면이 닫히지 않게)
+      document.querySelectorAll<HTMLAnchorElement>('main a[href^="http"]').forEach((a) => {
+        if (a.host !== location.host) { a.target = '_blank'; a.rel = 'noopener'; }
+      });
+    </script>
   </body>
 </html>
 

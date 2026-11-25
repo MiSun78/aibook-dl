@@ -137,7 +137,7 @@ import DataFiles from '../../components/DataFiles.astro';
 
 | 단계 | 하는 일 | 코드 |
 |---|---|---|
-| 1. 데이터 수집하기 | 캐글에서 penguins_size.csv 내려받기 (교과서 78쪽 링크, 아래에서 바로 받을 수 있음) | |
+| 1. 데이터 수집하기 | [캐글](https://www.kaggle.com/datasets/parulpandey/palmer-archipelago-antarctica-penguin-data)에서 penguins_size.csv 내려받기 (교과서 78쪽 링크, 아래에서 바로 받을 수 있음) | |
 | 2. 데이터 살펴보기 | 불러오기, 속성과 유형, 통계 요약, 종별 데이터 수 | `read_csv()`, `info()`, `describe()`, `countplot()` |
 | 3. 데이터 전처리하기 | 결측치 행 삭제, 이상치 확인과 삭제, 최소-최대 정규화 | `dropna()`, `boxplot()`, `unique()`, `drop()`, `MinMaxScaler()` |
 | 4. 핵심 속성 추출하기 | 산점도와 상관계수 히트맵으로 핵심 속성 찾기 | `scatterplot()`, `heatmap()`, `regplot()` |
@@ -188,7 +188,7 @@ Distribution 위젯에서 변수를 flipper_length_mm, Split by를 species로 �
 
 2016년, 2017년 연이은 큰 지진으로 우리나라도 지진 안전지대라고 하기 어렵다. 기상청 지진 데이터로 우리나라의 지진 발생 현황을 분석해 보자.
 
-1. 기상자료개방포털(data.kma.go.kr)의 [데이터]-[지진화산]-[지진화산 특·정보]-[지진정보]에서 최대 120개월의 지진 데이터를 조회해 csv로 저장한다. 엑셀에서 한글이 깨지면 구글 스프레드시트로 열어 csv로 다시 저장한다(파일명: earthquake). 직접 모으지 않았다면 교과서 86쪽 링크의 파일을 쓴다.
+1. [기상자료개방포털](https://data.kma.go.kr/)의 [데이터]-[지진화산]-[지진화산 특·정보]-[지진정보]에서 최대 120개월의 지진 데이터를 조회해 csv로 저장한다. 엑셀에서 한글이 깨지면 구글 스프레드시트로 열어 csv로 다시 저장한다(파일명: earthquake). 직접 모으지 않았다면 [교과서 86쪽 링크](https://bit.ly/earthquake_data)의 파일을 쓴다(아래에서도 받을 수 있다).
 2. 결측치를 확인하고 지운 뒤, 시간에서 연도를 뽑아 연도별 지진 규모를 산점도로 그린다.
 3. 위치에서 지역(앞 두 글자)을 뽑아 지역별 지진 발생 횟수를 원그래프로 그린다.
 

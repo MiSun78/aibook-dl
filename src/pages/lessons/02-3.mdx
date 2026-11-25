@@ -97,7 +97,7 @@ import DataFiles from '../../components/DataFiles.astro';
 | 단계 3 모델 생성하기 | 연속적인 값을 예측하고 독립 변수가 하나이므로 단순 선형 회귀를 고른다. `LinearRegression`으로 학습하고 회귀계수, 절편, 결정계수를 구한다. |
 | 단계 4 모델 평가하기 | 테스트 데이터로 결정계수를 구하고, 예측값과 실젯값을 그래프로 비교한다. |
 
-**데이터**: 교과서 링크(bit.ly/jeans_data)의 `jeans.csv`. 공공데이터포털의 '국방부 공군 신체 측정 정보(남, 여)'에서 목둘레(neck), 몸무게(weight), 엉덩이둘레(heap), 허리둘레(waist) 열만 남기고 결측치와 이상치를 지운 963명의 데이터이다. 공군 데이터만 썼으므로 모든 사람에게 그대로 일반화할 수는 없다.
+**데이터**: [교과서 링크](https://bit.ly/jeans_data)의 `jeans.csv`. [공공데이터포털](https://www.data.go.kr/)의 '국방부 공군 신체 측정 정보(남, 여)'에서 목둘레(neck), 몸무게(weight), 엉덩이둘레(heap), 허리둘레(waist) 열만 남기고 결측치와 이상치를 지운 963명의 데이터이다. 공군 데이터만 썼으므로 모든 사람에게 그대로 일반화할 수는 없다.
 
 <DataFiles files={['jeans.csv']} />
 
@@ -171,7 +171,7 @@ y = df['waist'].values
 
 **문제 상황**: 자연산 전복은 남획과 지구 온난화로 멸종 위기에 있다. 바다의 산성화와 수온 상승은 전복의 먹이인 해조류의 성장을 방해한다. 전복의 나이는 껍데기의 고리 수(rings)를 세어 알 수 있는데(나이 ≈ 고리 수 + 1.5), 이 작업은 시간이 오래 걸린다. 전복의 크기와 무게로 고리 수를 예측하는 모델을 만들어 어린 전복을 보호하는 데 활용해 보자.
 
-**데이터**: 캐글의 abalone-uci 데이터셋(`abalone_original.csv`). 성별(sex), 길이, 지름, 높이, 전체 무게, 살 무게, 내장 무게, 껍데기 무게, 고리 수(rings)로 되어 있다.
+**데이터**: [캐글의 abalone-uci 데이터셋](https://www.kaggle.com/datasets/hurshd0/abalone-uci)(`abalone_original.csv`). 성별(sex), 길이, 지름, 높이, 전체 무게, 살 무게, 내장 무게, 껍데기 무게, 고리 수(rings)로 되어 있다.
 
 <DataFiles files={['abalone_original.csv']} />
 
