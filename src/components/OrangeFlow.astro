@@ -1,0 +1,108 @@
+---
+// 오렌지3 워크플로 그림: 위젯(원)과 연결선을 오렌지 캔버스처럼 그린다.
+interface Node { id: string; w: string; label: string; cat: string; col: number; row: number; step?: number; sub?: string }
+interface Edge { from: string; to: string; label?: string }
+interface Props { title: string; data?: string; nodes: Node[]; edges: Edge[]; note?: string }
+const { title, data, nodes, edges, note } = Astro.props;
+
+const CAT: Record<string, { c: string; ko: string }> = {
+  data: { c: '#f2a03d', ko: 'Data' },
+  transform: { c: '#d9b52f', ko: 'Transform' },
+  visualize: { c: '#ef7b7b', ko: 'Visualize' },
+  model: { c: '#e879b1', ko: 'Model' },
+  evaluate: { c: '#a98be0', ko: 'Evaluate' },
+  unsupervised: { c: '#6d9cf0', ko: 'Unsupervised' },
+  image: { c: '#3fb39a', ko: 'Image Analytics' },
+};
+// 흰색 아이콘 (가운데 0,0 기준, 약 24×24)
+const ICON: Record<string, string> = {
+  file: 'M-8 -11 H4 L9 -6 V11 H-8 Z M4 -11 V-6 H9 M-4 -2 H5 M-4 3 H5 M-4 7 H2',
+  table: 'M-10 -9 H10 V9 H-10 Z M-10 -3 H10 M-10 3 H10 M-3 -9 V9 M4 -9 V9',
+  stats: 'M-10 10 H10 M-7 10 V2 M-2 10 V-6 M3 10 V-1 M8 10 V-9',
+  preprocess: 'M-10 -9 H10 L3 0 V9 L-3 6 V0 Z',
+  sampler: 'M0 -10 A10 10 0 1 1 -9.5 3 L0 0 Z M-1 -1 L-11 -3 A10 10 0 0 1 -2 -10 Z',
+  linreg: 'M-10 9 L10 -9 M-7 2 h0.1 M-2 -5 h0.1 M3 1 h0.1 M7 -8 h0.1 M-5 8 h0.1',
+  tree: 'M0 -9 V-3 M-7 3 V-3 H7 V3 M-7 3 h0.1 M7 3 h0.1 M0 -9 h0.1 M-10 9 L-7 3 L-4 9 M4 9 L7 3 L10 9',
+  nn: 'M-9 -6 L0 -8 L9 0 M-9 -6 L0 0 L9 0 M-9 6 L0 0 M-9 6 L0 8 L9 0 M-9 -6 L0 8 M-9 6 L0 -8',
+  score: 'M-8 -10 H8 V10 H-8 Z M-5 -4 L-3 -2 L1 -6 M-5 4 L-3 6 L1 2 M3 -4 H6 M3 4 H6',
+  pred: 'M-10 0 H6 M1 -5 L6 0 L1 5 M8 -8 V8',
+  scatter: 'M-10 -10 V10 H10 M-6 4 h0.1 M-3 -2 h0.1 M1 2 h0.1 M3 -5 h0.1 M6 -8 h0.1 M-1 -6 h0.1',
+  dist: 'M-10 10 H10 M-9 10 V5 H-5 V-2 H-1 V-8 H3 V-1 H7 V6 H9 V10',
+  kmeans: 'M-6 -5 h0.1 M-8 -1 h0.1 M-4 -1 h0.1 M5 -6 h0.1 M8 -3 h0.1 M4 -2 h0.1 M-1 6 h0.1 M2 8 h0.1 M-3 9 h0.1',
+  silhouette: 'M-10 -9 V9 M-10 -6 H8 M-10 0 H4 M-10 6 H6',
+  images: 'M-10 -8 H10 V8 H-10 Z M-10 6 L-3 -1 L2 4 L5 1 L10 6 M4 -4 h0.1',
+  embed: 'M0 -10 L9 -5 V5 L0 10 L-9 5 V-5 Z M-9 -5 L0 0 L9 -5 M0 0 V10',
+  viewer: 'M0 -9 V-3 M-7 3 V-3 H7 V3 M-10 9 H-4 M4 9 H10 M-7 3 V9 M7 3 V9',
+};
+const DOT = new Set(['linreg', 'scatter', 'kmeans', 'tree']);
+const PX = 175, PY = 128, R = 30, M = 70;
+const cols = Math.max(...nodes.map((n) => n.col)) + 1, rows = Math.max(...nodes.map((n) => n.row)) + 1;
+const W = (cols - 1) * PX + M * 2, H = (rows - 1) * PY + 118;
+const pos = (n: Node) => ({ x: M + n.col * PX, y: 44 + n.row * PY });
+const byId = Object.fromEntries(nodes.map((n) => [n.id, n]));
+const paths = edges.map((e) => {
+  const a = pos(byId[e.from]), b = pos(byId[e.to]);
+  const x1 = a.x + R + 2, y1 = a.y, x2 = b.x - R - 6, y2 = b.y, dx = (x2 - x1) * 0.5;
+  return { d: `M${x1} ${y1} C${x1 + dx} ${y1} ${x2 - dx} ${y2} ${x2} ${y2}`, mx: (x1 + x2) / 2, my: (y1 + y2) / 2, label: e.label };
+});
+const usedCats = [...new Set(nodes.map((n) => n.cat))];
+const uid = 'of' + Math.abs([...title].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) | 0, 7));
+---
+<figure class="oflow">
+  <figcaption class="of-head">
+    <span class="of-badge">오렌지3 워크플로</span>
+    <span class="of-title">{title}</span>
+    {data && <span class="of-data">데이터: {data}</span>}
+  </figcaption>
+  <div class="of-scroll">
+    <svg viewBox={`0 0 ${W} ${H}`} style={`min-width:${Math.min(W, 640)}px`} role="img" aria-label={`${title} 워크플로: ` + edges.map((e) => `${byId[e.from].label} → ${byId[e.to].label}`).join(', ')}>
+      <defs>
+        <marker id={uid} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#8a93a6" /></marker>
+      </defs>
+      {paths.map((p) => <path d={p.d} fill="none" stroke="#8a93a6" stroke-width="2" stroke-dasharray="1 0" marker-end={`url(#${uid})`} />)}
+      {paths.filter((p) => p.label).map((p) => (
+        <g>
+          <rect x={p.mx - p.label!.length * 3.3 - 6} y={p.my - 10} width={p.label!.length * 6.6 + 12} height="17" rx="8" fill="#fff" stroke="#dde1e8" />
+          <text x={p.mx} y={p.my + 3} font-size="10.5" text-anchor="middle" fill="#3a4560">{p.label}</text>
+        </g>
+      ))}
+      {nodes.map((n) => {
+        const { x, y } = pos(n), c = CAT[n.cat].c;
+        return (
+          <g>
+            <circle cx={x} cy={y} r={R + 5} fill={c} fill-opacity=".18" />
+            <circle cx={x} cy={y} r={R} fill={c} />
+            <path d={ICON[n.w] || ICON.file} transform={`translate(${x} ${y})`} fill="none" stroke="#fff" stroke-width={DOT.has(n.w) ? 2.6 : 2.2} stroke-linecap="round" stroke-linejoin="round" style={n.w === 'kmeans' ? 'stroke-width:5' : n.w === 'scatter' ? 'stroke-width:2.4' : ''} />
+            {n.step && (
+              <g>
+                <circle cx={x - R + 2} cy={y - R + 2} r="10" fill="#172038" />
+                <text x={x - R + 2} y={y - R + 6} font-size="11.5" font-weight="800" text-anchor="middle" fill="#fff">{n.step}</text>
+              </g>
+            )}
+            <text x={x} y={y + R + 19} font-size="13" font-weight="750" text-anchor="middle" fill="#172038">{n.label}</text>
+            {n.sub && <text x={x} y={y + R + 35} font-size="10.5" text-anchor="middle" fill="#5b6478">{n.sub}</text>}
+          </g>
+        );
+      })}
+    </svg>
+  </div>
+  <p class="of-legend">
+    {usedCats.map((k) => <span><i style={`background:${CAT[k].c}`}></i>{CAT[k].ko}</span>)}
+    <span class="of-hint">위젯은 왼쪽 위젯 목록의 같은 색 분류에서 찾는다. 번호는 아래 단계 번호이다.</span>
+  </p>
+  {note && <p class="of-note">{note}</p>}
+</figure>
+
+<style>
+  .oflow { margin: 0 0 1.2rem; border: 1px solid var(--line); border-radius: var(--radius-m); background: #fffaf2; padding: 0.9rem 1rem 0.7rem; }
+  .of-head { display: flex; flex-wrap: wrap; gap: 0.4rem 0.8rem; align-items: center; margin-bottom: 0.5rem; }
+  .of-badge { background: #f2a03d; color: #fff; font-weight: 800; font-size: 0.82rem; padding: 0.15em 0.7em; border-radius: 999px; }
+  .of-title { font-weight: 800; font-size: 1.02rem; }
+  .of-data { margin-left: auto; font-size: 0.85rem; color: var(--ink-2); background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 0.1em 0.7em; }
+  .of-scroll { overflow-x: auto; }
+  .of-scroll svg { width: 100%; height: auto; display: block; }
+  .of-legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; font-size: 0.82rem; margin: 0.4rem 0 0; color: var(--ink-2); }
+  .of-legend i { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 50%; margin-right: 0.3rem; vertical-align: -1px; }
+  .of-hint { color: var(--muted); }
+  .of-note { font-size: 0.85rem; color: var(--ink-2); margin: 0.4rem 0 0; }
+</style>

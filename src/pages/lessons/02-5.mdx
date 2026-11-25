@@ -8,6 +8,7 @@ import KMeansLab from '../../components/KMeansLab.astro';
 import FigKMeansSteps from '../../components/figs/FigKMeansSteps.astro';
 import FigSilhouette from '../../components/figs/FigSilhouette.astro';
 import DataFiles from '../../components/DataFiles.astro';
+import OrangeFlow from '../../components/OrangeFlow.astro';
 
 <Lesson slug="02-5" ids={['s1', 'a6', 'p4', 'orange', 'more', 'opt6', 'dream']}>
 
@@ -94,6 +95,19 @@ print(silhouette_score(data, model.labels_))   # 실루엣 점수
 </Sec>
 
 <Sec id="orange" title="군집 모델 구현하기" pages="123쪽" kind="오렌지로 해 볼까?">
+
+<OrangeFlow
+  title="쇼핑몰 고객 군집화 (k-평균)"
+  data="Mall_Customers.csv"
+  nodes={[
+    { id: 'f', w: 'file', label: 'File', cat: 'data', col: 0, row: 1, step: 1, sub: '소득, 점수 → feature' },
+    { id: 'km', w: 'kmeans', label: 'k-Means', cat: 'unsupervised', col: 1, row: 1, step: 2, sub: 'k: 2~8 실루엣 비교' },
+    { id: 'sc', w: 'scatter', label: 'Scatter Plot', cat: 'visualize', col: 2, row: 0, step: 3, sub: '군집 결과' },
+    { id: 'dt', w: 'table', label: 'Data Table', cat: 'data', col: 2, row: 1, sub: '군집 번호 보기' },
+    { id: 'sp', w: 'silhouette', label: 'Silhouette Plot', cat: 'visualize', col: 2, row: 2, step: 3, sub: '데이터별 실루엣' },
+  ]}
+  edges={[{ from: 'f', to: 'km' }, { from: 'km', to: 'sc' }, { from: 'km', to: 'dt' }, { from: 'km', to: 'sp' }]}
+/>
 
 같은 실습을 오렌지3로 할 수 있다. 데이터는 Mall_Customers.csv를 쓴다.
 

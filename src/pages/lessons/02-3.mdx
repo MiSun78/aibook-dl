@@ -8,6 +8,7 @@ import LineFit from '../../components/LineFit.astro';
 import FigRegLines from '../../components/figs/FigRegLines.astro';
 import FigR2 from '../../components/figs/FigR2.astro';
 import DataFiles from '../../components/DataFiles.astro';
+import OrangeFlow from '../../components/OrangeFlow.astro';
 
 <Lesson slug="02-3" ids={['s1', 's2', 'p2', 'orange', 'opt2', 'opt3']}>
 
@@ -133,6 +134,20 @@ print(model.score(X_test, y_test))     # 테스트 데이터의 결정계수
 </Sec>
 
 <Sec id="orange" title="목둘레로 청바지 치수를 알 수 있을까?" pages="102쪽" kind="오렌지로 해 볼까?">
+
+<OrangeFlow
+  title="목둘레로 허리둘레 예측하기 (선형 회귀)"
+  data="jeans.csv"
+  nodes={[
+    { id: 'f', w: 'file', label: 'File', cat: 'data', col: 0, row: 1, step: 1, sub: 'neck → feature' },
+    { id: 'ds', w: 'sampler', label: 'Data Sampler', cat: 'transform', col: 1, row: 1, step: 2, sub: '70%' },
+    { id: 'lr', w: 'linreg', label: 'Linear Regression', cat: 'model', col: 2, row: 1, step: 3 },
+    { id: 'ts', w: 'score', label: 'Test and Score', cat: 'evaluate', col: 3, row: 0, step: 3 },
+    { id: 'dt', w: 'table', label: 'Data Table', cat: 'data', col: 3, row: 1, step: 3, sub: '회귀계수, 절편' },
+    { id: 'pr', w: 'pred', label: 'Predictions', cat: 'evaluate', col: 3, row: 2, step: 4 },
+  ]}
+  edges={[{ from: 'f', to: 'ds' }, { from: 'ds', to: 'lr', label: 'Data Sample' }, { from: 'ds', to: 'ts', label: 'Data Sample' }, { from: 'lr', to: 'ts' }, { from: 'lr', to: 'dt', label: 'Coefficients' }, { from: 'lr', to: 'pr' }, { from: 'ds', to: 'pr', label: 'Remaining Data' }]}
+/>
 
 같은 실습을 오렌지3로 할 수 있다. 데이터는 실습 2의 jeans.csv를 쓴다.
 

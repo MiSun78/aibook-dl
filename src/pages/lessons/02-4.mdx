@@ -11,6 +11,7 @@ import FigSigmoid from '../../components/figs/FigSigmoid.astro';
 import FigKNN from '../../components/figs/FigKNN.astro';
 import FigConfusion from '../../components/figs/FigConfusion.astro';
 import DataFiles from '../../components/DataFiles.astro';
+import OrangeFlow from '../../components/OrangeFlow.astro';
 
 <Lesson slug="02-4" ids={['s1', 'a5', 's2', 's3', 'food', 'p3', 'orange', 'opt4', 'opt5']}>
 
@@ -219,6 +220,21 @@ print(dt.score(X_test, y_test))        # 테스트 데이터 분류 정확도
 </Sec>
 
 <Sec id="orange" title="펭귄 종 분류 모델 구현하기" pages="113쪽" kind="오렌지로 해 볼까?">
+
+<OrangeFlow
+  title="펭귄 종 분류하기 (결정트리)"
+  data="penguins_size.csv"
+  nodes={[
+    { id: 'f', w: 'file', label: 'File', cat: 'data', col: 0, row: 1, step: 1, sub: 'species → target' },
+    { id: 'pp', w: 'preprocess', label: 'Preprocess', cat: 'transform', col: 1, row: 1, step: 2, sub: '결측치 행 삭제' },
+    { id: 'ds', w: 'sampler', label: 'Data Sampler', cat: 'transform', col: 2, row: 1, step: 3, sub: '70%' },
+    { id: 'tr', w: 'tree', label: 'Tree', cat: 'model', col: 3, row: 1, step: 4 },
+    { id: 'ts', w: 'score', label: 'Test and Score', cat: 'evaluate', col: 4, row: 0, step: 4 },
+    { id: 'tv', w: 'viewer', label: 'Tree Viewer', cat: 'visualize', col: 4, row: 1, sub: '트리 모양 보기' },
+    { id: 'pr', w: 'pred', label: 'Predictions', cat: 'evaluate', col: 4, row: 2, step: 5 },
+  ]}
+  edges={[{ from: 'f', to: 'pp' }, { from: 'pp', to: 'ds' }, { from: 'ds', to: 'tr', label: 'Data Sample' }, { from: 'ds', to: 'ts', label: 'Data Sample' }, { from: 'tr', to: 'ts' }, { from: 'tr', to: 'tv' }, { from: 'tr', to: 'pr' }, { from: 'ds', to: 'pr', label: 'Remaining Data' }]}
+/>
 
 같은 실습을 오렌지3로 할 수 있다. 데이터는 penguins_size.csv를 쓴다.
 

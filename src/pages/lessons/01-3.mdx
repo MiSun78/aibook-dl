@@ -12,6 +12,7 @@ import FigPenguin from '../../components/figs/FigPenguin.astro';
 import FigBoxplot from '../../components/figs/FigBoxplot.astro';
 import FigMinMax from '../../components/figs/FigMinMax.astro';
 import DataFiles from '../../components/DataFiles.astro';
+import OrangeFlow from '../../components/OrangeFlow.astro';
 
 <Lesson slug="01-3" ids={['s1', 's2', 'more', 's3', 'p1', 'orange', 'read', 'opt']}>
 
@@ -159,6 +160,21 @@ import DataFiles from '../../components/DataFiles.astro';
 </Sec>
 
 <Sec id="orange" title="펭귄 데이터 탐색하기" pages="84쪽" kind="오렌지로 해 볼까?">
+
+<OrangeFlow
+  title="펭귄 데이터 탐색하기"
+  data="penguins_size.csv"
+  nodes={[
+    { id: 'f', w: 'file', label: 'File', cat: 'data', col: 0, row: 1, step: 1 },
+    { id: 'dt', w: 'table', label: 'Data Table', cat: 'data', col: 1, row: 0, step: 1, sub: '데이터 살펴보기' },
+    { id: 'fs', w: 'stats', label: 'Feature Statistics', cat: 'data', col: 1, row: 2, step: 1, sub: '통계 요약' },
+    { id: 'pp', w: 'preprocess', label: 'Preprocess', cat: 'transform', col: 2, row: 1, step: 2, sub: '결측치 삭제, 정규화' },
+    { id: 'dt2', w: 'table', label: 'Data Table', cat: 'data', col: 3, row: 0, step: 2, sub: '처리 결과' },
+    { id: 'sc', w: 'scatter', label: 'Scatter Plot', cat: 'visualize', col: 3, row: 1, step: 3 },
+    { id: 'di', w: 'dist', label: 'Distributions', cat: 'visualize', col: 3, row: 2, step: 3 },
+  ]}
+  edges={[{ from: 'f', to: 'dt' }, { from: 'f', to: 'fs' }, { from: 'f', to: 'pp' }, { from: 'pp', to: 'dt2' }, { from: 'pp', to: 'sc' }, { from: 'pp', to: 'di' }]}
+/>
 
 같은 실습을 오렌지3로 할 수 있다. 데이터는 실습 1의 penguins_size.csv를 쓴다.
 
